@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * <b>Annotation Route</b>
- * <br/><br/>
+ * <br><br>
  * value=[route], e.g: http://www.xxx.com/a/b, value=a
  * @author taixiong.liu
  *

@@ -2,7 +2,7 @@ package cn.liutaixiong.hapi.route;
 
 /**
  * <b>enum HapiHttpMethod</b>
- * <br/><br/>
+ * <br><br>
  * BOTH=1, GET=2, POST=3
  * @author taixiong.liu
  *

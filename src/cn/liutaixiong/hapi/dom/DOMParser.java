@@ -17,8 +17,8 @@ import org.xml.sax.SAXException;
 
 /**
  * <b>XML document parser</b>
- * <br/><br/>
- * read configuration from XML file (<K,V> key=nodeName, value=textContent)
+ * <br><br>
+ * read configuration from XML file ({@code <K,V>} key=nodeName, value=textContent)
  * @author taixiong.liu
  */
 public class DOMParser {
@@ -67,8 +67,8 @@ public class DOMParser {
 	/**
 	 * 
 	 * @param fileName : XML file name
-	 * @return XML <K,V> nodeName(key) and textContent(value)
-	 * <br/><br/>
+	 * @return XML {@code <K,V>} nodeName(key) and textContent(value)
+	 * <br><br>
 	 * <b>map empty:parse error or file not exists</b>
 	 */
 	public Map<String, String> parseMap(String fileName){

@@ -7,7 +7,7 @@ import com.alibaba.fastjson.JSONObject;
 
 /**
  * <b>Automatic parse request uri and parameter</b>
- * <br/><br/>
+ * <br><br>
  * parse request body text with JSON or normal
  * @author taixiong.liu
  *

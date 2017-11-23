@@ -21,7 +21,7 @@ public class ClassScanner {
 	/**
 	 * <b>get all classes in package</b>
 	 * @param packageName e.g:com.xxx.xxx
-	 * @return
+	 * @return array class
 	 */
     public static List<Class<?>> getClassesWithPackageName(String packageName) {
     	List<Class<?>> clazzList = new ArrayList<Class<?>>();

@@ -4,7 +4,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 
 /**
  * <b>Response status object</b>
- * <br/><br/>response context
+ * <br><br>
+ * response context
  * @author taixiong.liu
  * 
  */

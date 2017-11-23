@@ -7,9 +7,9 @@ import java.lang.annotation.Target;
 
 /**
  * <b>Annotation RequestMapping</b>
- * <br/><br/>
+ * <br><br>
  * value=[route], e.g: http://www.xxx.com/a/b, value=b
- * <br/>
+ * <br><br>
  * method=[HTTP method], default BOTH that can be request with HTTP method GET and POST
  * @author taixiong.liu
  *
