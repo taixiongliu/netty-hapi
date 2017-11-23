@@ -90,7 +90,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 				break;
 			}
 			String[] para = parakv.split("=");
-			//参数名不能为空
+			//parameter not empty
 			if(para[0].trim().equals("")){
 				isValid = false;
 				break;
