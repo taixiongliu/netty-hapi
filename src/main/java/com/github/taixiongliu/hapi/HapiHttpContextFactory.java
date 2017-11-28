@@ -52,7 +52,7 @@ public class HapiHttpContextFactory {
 	/**
 	 * <b>create HAPI context, default server port 8100</b>
 	 * @param context configuration file name
-	 * @param clazz parse request realization extends {@link cn.liutaixiong.hapi.http.BaseHapiHttpRequestImpl} class
+	 * @param clazz parse request realization extends {@link com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl} class
 	 */
 	public void createContext(String context, Class<? extends BaseHapiHttpRequestImpl> clazz){
 		DOMParser parser = new DOMParser();
