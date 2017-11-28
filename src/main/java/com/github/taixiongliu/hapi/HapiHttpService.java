@@ -1,13 +1,14 @@
-package cn.liutaixiong.hapi;
+package com.github.taixiongliu.hapi;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 
-import cn.liutaixiong.hapi.http.HapiHttpRequest;
-import cn.liutaixiong.hapi.http.HapiHttpResponse;
-import cn.liutaixiong.hapi.netty.HttpRequestHandler;
-import cn.liutaixiong.hapi.route.HapiHttpMethod;
-import cn.liutaixiong.hapi.route.Router;
+import com.github.taixiongliu.hapi.http.HapiHttpRequest;
+import com.github.taixiongliu.hapi.http.HapiHttpResponse;
+import com.github.taixiongliu.hapi.netty.HttpRequestHandler;
+import com.github.taixiongliu.hapi.route.HapiHttpMethod;
+import com.github.taixiongliu.hapi.route.Router;
+
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -82,8 +83,28 @@ public class HapiHttpService implements HttpRequestHandler{
 			response.setContent("403 context not support get request...");
 			return ;
 		}
+		response.setStatus(HttpResponseStatus.OK);
+		Parameter[] parameters = router.getMd().getParameters();
+		int len = parameters.length;
+		Object[] args = new Object[len];
+		for(int i = 0; i < len; i++){
+			Class<?> clazz = parameters[i].getType();
+			if(clazz.isPrimitive()){
+				args[i] = getPrimitiveParameter(clazz.getName());
+				continue;
+			}
+			if(clazz.isAssignableFrom(HapiHttpRequest.class)) {
+				args[i] = request;
+				continue;
+			}
+			if(clazz.isAssignableFrom(HapiHttpResponse.class)) {
+				args[i] = response;
+				continue;
+			}
+			args[i] = null;
+		}
 		try {
-			router.getMd().invoke(router.getClazz(), request, response);
+			router.getMd().invoke(router.getClazz(), args);
 		} catch (IllegalAccessException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

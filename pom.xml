@@ -1,0 +1,63 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.taixiongliu</groupId>
+  <artifactId>hapi</artifactId>
+  <version>1.0.2</version>
+  <packaging>jar</packaging>
+
+  <name>hapi</name>
+  <url>http://maven.apache.org</url>
+  <parent>
+	<groupId>org.sonatype.oss</groupId>
+	<artifactId>oss-parent</artifactId>
+	<version>7</version>
+  </parent>
+  <licenses>
+	<license>
+		<name>The Apache Software License, Version 2.0</name>
+		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		<distribution>repo</distribution>
+	</license>
+  </licenses>
+  <scm>              
+	<url>https://github.com/taixiongliu/hapi</url>
+	<connection>https://github.com/taixiongliu/hapi.git</connection>
+	<developerConnection>https://github.com/taixiongliu/hapi</developerConnection>
+  </scm>
+  <developers> 
+	<developer>
+		<name>liutaixiong</name>
+		<email>531457277@qq.com</email>
+		<url>https://github.com/taixiongliu/hapi</url>
+	</developer>
+</developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <netty.version>4.1.9.Final</netty.version>
+    <fastjson.version>1.2.28</fastjson.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
+      <version>${netty.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+		<groupId>com.alibaba</groupId>
+		<artifactId>fastjson</artifactId>
+		<version>${fastjson.version}</version>
+	</dependency>
+  </dependencies>
+</project>

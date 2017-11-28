@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi.http;
+package com.github.taixiongliu.hapi.http;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,13 +6,11 @@ import java.util.Map;
 import com.alibaba.fastjson.JSONObject;
 
 /**
- * <b>Automatic parse request uri and parameter</b>
- * <br><br>
- * parse request body text with JSON or normal
+ * <b>Parse request uri and parameter only JSON</b>
  * @author taixiong.liu
  *
  */
-public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
+public class JsonHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
 
 	@Override
 	public Map<String, String> parseParameter(String content) throws HttpUrlErrorException {
@@ -24,7 +22,6 @@ public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
 		if(content == null || content.equals("")){
 			return new HashMap<String, String>();
 		}
-		//support JSON branch
 		boolean isJson = true;
 		JSONObject jo = null;
     	try {
@@ -33,10 +30,10 @@ public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
 			// TODO: handle exception
 			isJson = false;
 		}
-    	if(isJson){
-    		return parseFromJson(jo);
+    	if(!isJson){
+    		throw new HttpUrlErrorException("invalid parameter of json...");
     	}
-		return getParameterMapByUrlParameter(content, false);
+    	return parseFromJson(jo);
 	}
 	
 	/**

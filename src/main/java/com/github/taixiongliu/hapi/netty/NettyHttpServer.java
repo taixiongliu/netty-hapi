@@ -1,6 +1,7 @@
-package cn.liutaixiong.hapi.netty;
-import cn.liutaixiong.hapi.http.AutoHapiHttpRequestImpl;
-import cn.liutaixiong.hapi.http.BaseHapiHttpRequestImpl;
+package com.github.taixiongliu.hapi.netty;
+import com.github.taixiongliu.hapi.http.AutoHapiHttpRequestImpl;
+import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;

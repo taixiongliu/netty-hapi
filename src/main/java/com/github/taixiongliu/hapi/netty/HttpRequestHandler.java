@@ -1,7 +1,8 @@
-package cn.liutaixiong.hapi.netty;
+package com.github.taixiongliu.hapi.netty;
 
-import cn.liutaixiong.hapi.http.HapiHttpRequest;
-import cn.liutaixiong.hapi.http.HapiHttpResponse;
+import com.github.taixiongliu.hapi.http.HapiHttpRequest;
+import com.github.taixiongliu.hapi.http.HapiHttpResponse;
+
 import io.netty.handler.codec.http.HttpMethod;
 
 /**

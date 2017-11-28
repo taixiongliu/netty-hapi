@@ -1,12 +1,13 @@
-package cn.liutaixiong.hapi.netty;
+package com.github.taixiongliu.hapi.netty;
 
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
-import cn.liutaixiong.hapi.http.BaseHapiHttpRequestImpl;
-import cn.liutaixiong.hapi.http.DefaultHapiHttpResponseImpl;
-import cn.liutaixiong.hapi.http.HttpUrlErrorException;
+import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
+import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
+import com.github.taixiongliu.hapi.http.HttpUrlErrorException;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;

@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi.dom;
+package com.github.taixiongliu.hapi.dom;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi;
+package com.github.taixiongliu.hapi;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cn.liutaixiong.hapi.dom.DOMParser;
-import cn.liutaixiong.hapi.http.BaseHapiHttpRequestImpl;
-import cn.liutaixiong.hapi.netty.NettyHttpServer;
-import cn.liutaixiong.hapi.route.ClassScanner;
-import cn.liutaixiong.hapi.route.HapiHttpMethod;
-import cn.liutaixiong.hapi.route.RequestMapping;
-import cn.liutaixiong.hapi.route.Route;
-import cn.liutaixiong.hapi.route.Router;
+import com.github.taixiongliu.hapi.dom.DOMParser;
+import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
+import com.github.taixiongliu.hapi.netty.NettyHttpServer;
+import com.github.taixiongliu.hapi.route.ClassScanner;
+import com.github.taixiongliu.hapi.route.HapiHttpMethod;
+import com.github.taixiongliu.hapi.route.RequestMapping;
+import com.github.taixiongliu.hapi.route.Route;
+import com.github.taixiongliu.hapi.route.Router;
 
 /**
  * <b>Scan annotation create and cache router instance</b>

@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi.route;
+package com.github.taixiongliu.hapi.route;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

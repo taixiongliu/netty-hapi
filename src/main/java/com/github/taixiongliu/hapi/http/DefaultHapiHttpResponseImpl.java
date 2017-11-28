@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi.http;
+package com.github.taixiongliu.hapi.http;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 

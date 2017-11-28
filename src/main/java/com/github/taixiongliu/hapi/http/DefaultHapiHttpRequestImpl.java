@@ -1,4 +1,4 @@
-package cn.liutaixiong.hapi.http;
+package com.github.taixiongliu.hapi.http;
 
 import java.util.Map;
 
