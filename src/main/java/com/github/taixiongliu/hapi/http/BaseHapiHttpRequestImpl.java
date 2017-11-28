@@ -58,10 +58,12 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	}
 	
 	/**
-	 * default request parse method
-	 * @param urlParameter eg. 'a=&b=2'
-	 * @return
-	 * @throws HttpUrlErrorException
+	 * <b>default request parse method</b>
+	 * 
+	 * @param urlParameter string of parameter text, linked with character {@code '=' and '&'}
+	 * @param exactMatch true = check special key words
+	 * @return parameter map list
+	 * @throws HttpUrlErrorException invalid url
 	 */
 	protected Map<String, String> getParameterMapByUrlParameter(String urlParameter, boolean exactMatch) throws HttpUrlErrorException{
 		if(exactMatch){
@@ -116,8 +118,10 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	}
 	
 	/**
-	 * check special key words;
-	 * @return
+	 * <b>check special key words</b>
+	 * 
+	 * @param urlContent text content
+	 * @return it is none when return -1
 	 */
 	protected int checkSymbol(String urlContent){
 		int res = -1;
@@ -131,6 +135,10 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 		}
 		return res;
 	}
+	
+	public void setIpAddress(String ip){
+		this.ip = ip;
+	} 
 	
 	public String getUrl() {
 		// TODO Auto-generated method stub

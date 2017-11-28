@@ -58,6 +58,13 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter{
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH,
               response.content().readableBytes());
+        
+        Map<String, String> map = nettyResponse.heads();
+        if(map != null){
+        	for(String key : map.keySet()){
+        		response.headers().set(key, map.get(key));
+        	}
+        }
         return response;
 	}
 	
@@ -117,6 +124,8 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter{
 	            channel.close();
 	            return ;
 			}
+			
+			requestImpl.setIpAddress(ip);
 			
 			//get method request
 			if(!isPost){
