@@ -6,6 +6,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * <b>Class scanner</b>
@@ -33,7 +35,21 @@ public class ClassScanner {
             Enumeration<URL> enumeration = classLoader.getResources(path);
             while (enumeration.hasMoreElements()) {
                 URL url = enumeration.nextElement();
-                clazzList.addAll(selectClasses(new File(url.getFile()),packageName));
+                String protocol = url.getProtocol();
+                if("file".equals(protocol)){
+                	clazzList.addAll(selectClasses(new File(url.getFile()),packageName));
+                	continue;
+                }
+                if("jar".equals(protocol)){
+                	String jarPath = url.getFile();
+                	if(url.getFile().contains("!")){
+                		jarPath = url.getFile().split("!")[0];
+                	}
+                	//substring 'file:'
+                	jarPath = jarPath.substring(5, jarPath.length());
+                	clazzList.addAll(getClasssFromJarFile(jarPath,path));
+                	continue;
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -70,4 +86,41 @@ public class ClassScanner {
         }
         return list;
     }
+    
+	private static List<Class<?>> getClasssFromJarFile(String jarPath, String packagePath) {
+		List<Class<?>> clazzs = new ArrayList<Class<?>>();
+
+		JarFile jarFile = null;
+		try {
+			jarFile = new JarFile(jarPath);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		if (jarFile == null) {
+			return clazzs;
+		}
+
+		List<JarEntry> jarEntryList = new ArrayList<JarEntry>();
+
+		Enumeration<JarEntry> ee = jarFile.entries();
+		while (ee.hasMoreElements()) {
+			JarEntry entry = (JarEntry) ee.nextElement();
+			// filter package and class file
+			if (entry.getName().startsWith(packagePath) && entry.getName().endsWith(".class")) {
+				jarEntryList.add(entry);
+			}
+		}
+		for (JarEntry entry : jarEntryList) {
+			String className = entry.getName().replace('/', '.');
+			className = className.substring(0, className.length() - 6);
+
+			try {
+				clazzs.add(Thread.currentThread().getContextClassLoader().loadClass(className));
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return clazzs;
+	}
 }
