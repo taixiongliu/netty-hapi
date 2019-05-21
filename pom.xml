@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.github.taixiongliu</groupId>
-  <artifactId>hapi</artifactId>
+  <artifactId>netty-hapi</artifactId>
   <version>1.1.0</version>
   <packaging>jar</packaging>
 
-  <name>hapi</name>
+  <name>netty-hapi</name>
   <url>http://maven.apache.org</url>
   <parent>
 	<groupId>org.sonatype.oss</groupId>
@@ -22,15 +22,15 @@
 	</license>
   </licenses>
   <scm>              
-	<url>https://github.com/taixiongliu/hapi</url>
-	<connection>https://github.com/taixiongliu/hapi.git</connection>
-	<developerConnection>https://github.com/taixiongliu/hapi</developerConnection>
+	<url>https://github.com/taixiongliu/netty-hapi</url>
+	<connection>https://github.com/taixiongliu/netty-hapi.git</connection>
+	<developerConnection>https://github.com/taixiongliu/netty-hapi</developerConnection>
   </scm>
   <developers> 
 	<developer>
 		<name>liutaixiong</name>
 		<email>531457277@qq.com</email>
-		<url>https://github.com/taixiongliu/hapi</url>
+		<url>https://github.com/taixiongliu/netty-hapi</url>
 	</developer>
 </developers>
 
