@@ -4,7 +4,7 @@
 
   <groupId>com.github.taixiongliu</groupId>
   <artifactId>hapi</artifactId>
-  <version>1.0.3</version>
+  <version>1.1.0</version>
   <packaging>jar</packaging>
 
   <name>hapi</name>
