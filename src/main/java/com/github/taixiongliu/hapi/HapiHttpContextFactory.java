@@ -15,6 +15,7 @@ import com.github.taixiongliu.hapi.route.HapiHttpMethod;
 import com.github.taixiongliu.hapi.route.RequestMapping;
 import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
+import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
 
 /**
  * <b>Scan annotation create and cache router instance</b>
@@ -36,11 +37,20 @@ public class HapiHttpContextFactory {
 		return factory;
 	}
 	
-	private Map<String, Router> map; 
+	private Map<String, Router> map;
+    private KeystoreEntity entity;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		map = new ConcurrentHashMap<String, Router>();
+		entity = null;
 	}
+	
+	public HapiHttpContextFactory buildHttps(KeystoreEntity entity){
+    	this.entity = entity;
+    	
+    	return this;
+    } 
+	
 	/**
 	 * <b>create HAPI context, default server port 8100</b>
 	 * @param context configuration file name
@@ -69,7 +79,8 @@ public class HapiHttpContextFactory {
 		}
 		
 		try {
-			new NettyHttpServer(port, new HapiHttpService(), clazz).run();
+			
+			new NettyHttpServer(port, new HapiHttpService(), clazz).buildHttps(entity).run();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

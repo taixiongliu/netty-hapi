@@ -36,7 +36,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 		}
 		int index = checkSymbol(uri);
 		if(index > 0){
-			throw new HttpUrlErrorException("invalid symbol of "+String.valueOf(url.charAt(index))+" at index "+index);
+			throw new HttpUrlErrorException("invalid symbol of "+String.valueOf(uri.charAt(index))+" at index "+index);
 		}
 		//get url and filter parameter 
 		if(uri.contains("?")){

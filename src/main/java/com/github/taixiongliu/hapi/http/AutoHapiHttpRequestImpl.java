@@ -17,10 +17,6 @@ public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
 	@Override
 	public Map<String, String> parseParameter(String content) throws HttpUrlErrorException {
 		// TODO Auto-generated method stub
-		int index = checkSymbol(content);
-		if(index > 0){
-			throw new HttpUrlErrorException("invalid symbol of "+String.valueOf(content.charAt(index))+" at index "+index);
-		}
 		if(content == null || content.equals("")){
 			return new HashMap<String, String>();
 		}

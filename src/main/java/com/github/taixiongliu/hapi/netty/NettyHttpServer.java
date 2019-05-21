@@ -1,6 +1,8 @@
 package com.github.taixiongliu.hapi.netty;
+import com.github.taixiongliu.hapi.HapiHttpSslContextFactory;
 import com.github.taixiongliu.hapi.http.AutoHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
+import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -13,6 +15,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.ssl.OptionalSslHandler;
+import io.netty.handler.ssl.SslContext;
 
 /**
  * <b>Bind and start to receive request, modify from netty example demo</b>
@@ -24,6 +28,8 @@ public class NettyHttpServer{
     private int port;
     private HttpRequestHandler handler;
     private Class<? extends BaseHapiHttpRequestImpl> clazz;
+    private boolean isSSL;
+    private KeystoreEntity entity;
 
     public NettyHttpServer(int port, HttpRequestHandler handler){
     	this(port, handler, null);
@@ -32,9 +38,25 @@ public class NettyHttpServer{
         this.port = port;
         this.handler = handler;
         this.clazz = clazz;
+        this.isSSL = false;
+        this.entity = null;
     }
+    
+    public NettyHttpServer buildHttps(KeystoreEntity entity){
+    	if(entity == null){
+    		return this;
+    	}
+    	this.isSSL = true;
+    	this.entity = entity;
+    	
+    	return this;
+    } 
 
     public void run() throws Exception {
+    	if(isSSL && entity != null){
+    		//must initialization configuration.
+   			HapiHttpSslContextFactory.getInstance().init(entity);
+    	}
         EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -44,6 +66,17 @@ public class NettyHttpServer{
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
+                	 if(isSSL && entity != null){
+                		 //--only protocol https can be support.
+                		 //ch.pipeline().addLast("sslHandler", new SslHandler(HapiHttpSslContextFactory.getInstance().createSSLEngine()));
+                		 
+                		 //supprot protocol https and http.
+                		 SslContext sslContext = HapiHttpSslContextFactory.getInstance().createSslContext();
+                		 if(sslContext != null){
+                			 ch.pipeline().addLast("sslHandler", new OptionalSslHandler(sslContext));
+                		 }
+                	 }
+                	 
                 	 // encode HTTP response message
                      ch.pipeline().addLast(new HttpResponseEncoder());
                      // decode HTTP request message
