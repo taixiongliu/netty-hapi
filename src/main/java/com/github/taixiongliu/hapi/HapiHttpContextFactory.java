@@ -12,6 +12,7 @@ import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.netty.NettyHttpServer;
 import com.github.taixiongliu.hapi.route.ClassScanner;
 import com.github.taixiongliu.hapi.route.HapiHttpMethod;
+import com.github.taixiongliu.hapi.route.HapiRouteType;
 import com.github.taixiongliu.hapi.route.RequestMapping;
 import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
@@ -121,14 +122,14 @@ public class HapiHttpContextFactory {
 			for (Annotation annotation : annotations) {
 				if(annotation instanceof RequestMapping){
 					RequestMapping mapping = (RequestMapping) annotation;
-					addRouter(clazz, med, route, mapping.value(), mapping.method());
+					addRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
 					break;
 				}
 			}
 		}
 	}
 	
-	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod){
+	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType){
 		if(position == null || position.trim().equals("")){
 			return ;
 		}
@@ -163,6 +164,7 @@ public class HapiHttpContextFactory {
 		}
 		router.setPosition(position);
 		router.setHttpMethod(httpMethod);
+		router.setRouteType(routeType);
 		map.put(router.getPath(), router);
 	}
 }

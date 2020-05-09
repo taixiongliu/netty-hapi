@@ -13,6 +13,7 @@ public class Router {
 	private Method md;
 	private String position;
 	private HapiHttpMethod httpMethod;
+	private HapiRouteType routeType;
 	
 	public String getPath() {
 		return path;
@@ -43,5 +44,11 @@ public class Router {
 	}
 	public void setHttpMethod(HapiHttpMethod httpMethod) {
 		this.httpMethod = httpMethod;
+	}
+	public HapiRouteType getRouteType() {
+		return routeType;
+	}
+	public void setRouteType(HapiRouteType routeType) {
+		this.routeType = routeType;
 	}
 }

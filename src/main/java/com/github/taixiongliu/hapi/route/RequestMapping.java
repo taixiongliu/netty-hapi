@@ -19,5 +19,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestMapping {
 	String value() default "";
-	HapiHttpMethod method() default HapiHttpMethod.BOTH; 
+	HapiHttpMethod method() default HapiHttpMethod.BOTH;
+	HapiRouteType type() default HapiRouteType.BODY;
 }

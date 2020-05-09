@@ -7,6 +7,7 @@ import com.github.taixiongliu.hapi.http.HapiHttpRequest;
 import com.github.taixiongliu.hapi.http.HapiHttpResponse;
 import com.github.taixiongliu.hapi.netty.HttpRequestHandler;
 import com.github.taixiongliu.hapi.route.HapiHttpMethod;
+import com.github.taixiongliu.hapi.route.HapiRouteType;
 import com.github.taixiongliu.hapi.route.Router;
 
 import io.netty.handler.codec.http.HttpMethod;
@@ -35,6 +36,10 @@ public class HapiHttpService implements HttpRequestHandler{
 			response.setStatus(HttpResponseStatus.FORBIDDEN);
 			response.setContent("403 context not support post request...");
 			return ;
+		}
+		//set route type.
+		if(router.getRouteType().equals(HapiRouteType.FILE)){
+			response.setRouteType(router.getRouteType());
 		}
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();

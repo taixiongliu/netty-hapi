@@ -17,6 +17,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.OptionalSslHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * <b>Bind and start to receive request, modify from netty example demo</b>
@@ -83,6 +84,7 @@ public class NettyHttpServer{
                      ch.pipeline().addLast(new HttpRequestDecoder());
                      // max receive length 4KB
                      ch.pipeline().addLast(new HttpObjectAggregator(4194304));
+                     ch.pipeline().addLast(new ChunkedWriteHandler());
                      
                      BaseHapiHttpRequestImpl base = null;
                      //default parse request with Automatic 
