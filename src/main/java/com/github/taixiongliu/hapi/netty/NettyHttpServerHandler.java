@@ -119,6 +119,12 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter{
         setContentTypeHeader(response, file);
         setDateAndCacheHeaders(response, file);
         
+        Map<String, String> map = nettyResponse.heads();
+        if(map != null){
+        	for(String key : map.keySet()){
+        		response.headers().set(key, map.get(key));
+        	}
+        }
      // Write the initial line and the header.
         ctx.write(response);
 

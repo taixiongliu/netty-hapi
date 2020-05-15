@@ -39,10 +39,14 @@ public class HapiHttpContextFactory {
 	}
 	
 	private Map<String, Router> map;
+	private Router root;
+	private Map<String, Router> path;
     private KeystoreEntity entity;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		map = new ConcurrentHashMap<String, Router>();
+		path = new ConcurrentHashMap<String, Router>();
+		root = null;
 		entity = null;
 	}
 	
@@ -89,6 +93,10 @@ public class HapiHttpContextFactory {
 	}
 	
 	public Router getRouter(String url){
+		Router temp = map.get(url);
+		if(temp == null){
+			return pathRouter(url);
+		}
 		return map.get(url);
 	}
 	
@@ -112,6 +120,38 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
+	/**
+	 * check path router.
+	 * @return Object Router
+	 */
+	private Router pathRouter(String url){
+		if((path == null|| path.isEmpty()) && root == null){
+			return null;
+		}
+		//normal path must start with '/[value]', value length must greater than or equal to 1. 
+		if(url == null || url.length() < 2){
+			return null;
+		}
+		Router temp = null;
+		for(String key : path.keySet()){
+			Router router = path.get(key);
+			String path = router.getPath();
+			int pathLen = path.length();
+			if(url.length() <= pathLen){
+				continue;
+			}
+			if(url.substring(0, pathLen).equals(path)){
+				temp = router;
+				break;
+			}
+		}
+		//root path
+		if(temp == null){
+			return root;
+		}
+		return temp;
+	}
+	
 	private void scanRoute(Class<?> clazz, String route){
 		Method[] meds = clazz.getMethods();
 		for (Method med : meds) {
@@ -122,7 +162,11 @@ public class HapiHttpContextFactory {
 			for (Annotation annotation : annotations) {
 				if(annotation instanceof RequestMapping){
 					RequestMapping mapping = (RequestMapping) annotation;
-					addRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
+					if(mapping.type().equals(HapiRouteType.PATH)){
+						addPathRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
+					}else{
+						addRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
+					}
 					break;
 				}
 			}
@@ -166,5 +210,51 @@ public class HapiHttpContextFactory {
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
 		map.put(router.getPath(), router);
+	}
+	
+	private void addPathRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType){
+		if(position == null){
+			position = "";
+		}
+		if(route == null){
+			route = "";
+		}
+		if(route.contains("/")){
+			route.replace("/", "");
+		}
+		if(position.contains("/")){
+			position.replace("/", "");
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("/");
+		if(!route.equals("")){
+			sb.append(route)
+			.append("/");
+		}
+		if(!position.equals("")){
+			sb.append(position)
+			.append("/");
+		}
+		
+		Router router = new Router();
+		router.setPath(sb.toString());
+		router.setMd(med);
+		try {
+			router.setClazz(clazz.newInstance());
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		router.setPosition(position);
+		router.setHttpMethod(httpMethod);
+		router.setRouteType(routeType);
+		if(router.getPath().equals("/") || router.getPath().equals("/*/")){
+			root = router;
+			return ;
+		}
+		path.put(router.getPath(), router);
 	}
 }

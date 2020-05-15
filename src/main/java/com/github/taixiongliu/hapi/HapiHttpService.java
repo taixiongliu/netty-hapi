@@ -41,6 +41,9 @@ public class HapiHttpService implements HttpRequestHandler{
 		if(router.getRouteType().equals(HapiRouteType.FILE)){
 			response.setRouteType(router.getRouteType());
 		}
+		if(router.getRouteType().equals(HapiRouteType.PATH)){
+			response.setRouteType(HapiRouteType.FILE);
+		}
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();
 		int len = parameters.length;
