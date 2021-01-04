@@ -174,7 +174,7 @@ public class HapiHttpContextFactory {
 	}
 	
 	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType){
-		if(position == null || position.trim().equals("")){
+		if(position == null){
 			return ;
 		}
 		if(route == null){
