@@ -20,6 +20,7 @@ import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import com.github.taixiongliu.hapi.HapiHttpContextFactory;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
 import com.github.taixiongliu.hapi.http.HttpUrlErrorException;
@@ -249,7 +250,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 				isPost = true;
 			}
 			String contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE);
-			if (contentType.startsWith("multipart/form-data")) {
+			if (contentType != null && contentType.startsWith("multipart/form-data")) {
 				isMFD = true;
 			}
 		}
@@ -266,6 +267,14 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 								FileUpload fileUpload = (FileUpload) data;
 								if (fileUpload.isCompleted()) {
 									fileUpload.isInMemory();// tells if the file is in Memory
+									
+									Integer maxLen = HapiHttpContextFactory.getInstance().getMaxLength();
+									//size over max.
+									if(maxLen != null && maxLen.intValue() < fileUpload.length()){
+										mdfError = 2;
+										break;
+									}
+									
 									// or on File
 									// enable to move into another
 									String[] fileNameArr = fileUpload.getFilename().split("\\.");
@@ -378,8 +387,19 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 			
 			// request body parse error
 			if (!parse) {
+				HttpResponseStatus es = HttpResponseStatus.BAD_REQUEST;
+				String errorMessage = "400,bad request...";
+				if(mdfError == 1){
+					es = HttpResponseStatus.SEE_OTHER;
+					errorMessage = "303,file create busy,try agin.";
+				}
+				if(mdfError == 2){
+					es = HttpResponseStatus.SEE_OTHER;
+					errorMessage = "303,file size over max "+HapiHttpContextFactory.getInstance().getMaxLength().intValue();
+				}
+				
 				ctx.write(setResponse(
-						new DefaultHapiHttpResponseImpl(HttpResponseStatus.BAD_REQUEST, "400,bad request...")));
+						new DefaultHapiHttpResponseImpl(es, errorMessage)));
 				ctx.flush();
 				ctx.close();
 				// release object

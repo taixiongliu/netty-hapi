@@ -45,6 +45,7 @@ public class HapiHttpContextFactory {
     private KeystoreEntity entity;
     private String rootPath;
     private String uploadPath;
+    private Integer maxLength;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		map = new ConcurrentHashMap<String, Router>();
@@ -83,6 +84,12 @@ public class HapiHttpContextFactory {
 		String mpackage = map.get("context:route-scan-package");
 		rootPath = map.get("context:root-path");
 		uploadPath = map.get("context:upload-path");
+		maxLength = null;
+		try {
+			maxLength = new Integer(map.get("context:upload-max-length"));
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
 		
 		if(rootPath == null || rootPath.trim().equals("")){
 			rootPath = "webcontent";
@@ -129,6 +136,9 @@ public class HapiHttpContextFactory {
 	}
 	public String getUploadPath(){
 		return uploadPath;
+	}
+	public Integer getMaxLength(){
+		return maxLength;
 	}
 	
 	private void loadRoute(String mpackage){
