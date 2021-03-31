@@ -31,16 +31,18 @@ public class NettyHttpServer{
     private Class<? extends BaseHapiHttpRequestImpl> clazz;
     private boolean isSSL;
     private KeystoreEntity entity;
+    private String uploadPath;
 
-    public NettyHttpServer(int port, HttpRequestHandler handler){
-    	this(port, handler, null);
+    public NettyHttpServer(int port, HttpRequestHandler handler, String uploadPath){
+    	this(port, handler, uploadPath, null);
     }
-    public NettyHttpServer(int port, HttpRequestHandler handler, Class<? extends BaseHapiHttpRequestImpl> clazz) {
+    public NettyHttpServer(int port, HttpRequestHandler handler, String uploadPath, Class<? extends BaseHapiHttpRequestImpl> clazz) {
         this.port = port;
         this.handler = handler;
         this.clazz = clazz;
         this.isSSL = false;
         this.entity = null;
+        this.uploadPath = uploadPath;
     }
     
     public NettyHttpServer buildHttps(KeystoreEntity entity){
@@ -94,7 +96,7 @@ public class NettyHttpServer{
                     	 base = clazz.newInstance();
                      }
                      
-                     NettyHttpServerHandler hd = new NettyHttpServerHandler(ch, handler, base);
+                     NettyHttpServerHandler hd = new NettyHttpServerHandler(ch, handler, base, uploadPath);
                      ch.pipeline().addLast(hd);
                  }
              })

@@ -1,5 +1,6 @@
 package com.github.taixiongliu.hapi;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -42,6 +43,8 @@ public class HapiHttpContextFactory {
 	private Router root;
 	private Map<String, Router> path;
     private KeystoreEntity entity;
+    private String rootPath;
+    private String uploadPath;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		map = new ConcurrentHashMap<String, Router>();
@@ -75,8 +78,30 @@ public class HapiHttpContextFactory {
 		if(map == null){
 			map = new HashMap<String, String>();
 		}
+		
 		String mport = map.get("context:port");
 		String mpackage = map.get("context:route-scan-package");
+		rootPath = map.get("context:root-path");
+		uploadPath = map.get("context:upload-path");
+		
+		if(rootPath == null || rootPath.trim().equals("")){
+			rootPath = "webcontent";
+		}
+		if(uploadPath == null || uploadPath.trim().equals("")){
+			uploadPath = "uploads";
+		}
+		//create web root path
+		File rp = new File(rootPath);
+		if(!rp.exists()){
+			rp.mkdir();
+		}
+		//create file upload path
+		String uploadPathString = rootPath+File.separatorChar+uploadPath+File.separatorChar;
+		File up = new File(uploadPathString);
+		if(!up.exists()){
+			up.mkdir();
+		}
+		
 		int port = mport == null ? 8100 : Integer.parseInt(mport);
 		if(mpackage != null && !mpackage.trim().equals("")){
 			//scan route
@@ -84,8 +109,7 @@ public class HapiHttpContextFactory {
 		}
 		
 		try {
-			
-			new NettyHttpServer(port, new HapiHttpService(), clazz).buildHttps(entity).run();
+			new NettyHttpServer(port, new HapiHttpService(), uploadPathString, clazz).buildHttps(entity).run();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -98,6 +122,13 @@ public class HapiHttpContextFactory {
 			return pathRouter(url);
 		}
 		return map.get(url);
+	}
+	
+	public String getRootPath(){
+		return rootPath;
+	}
+	public String getUploadPath(){
+		return uploadPath;
 	}
 	
 	private void loadRoute(String mpackage){
