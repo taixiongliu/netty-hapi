@@ -38,7 +38,7 @@ public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
 	/**
 	 * parse JSON
 	 * @param jo
-	 * @return
+	 * @return map
 	 */
 	private Map<String, String> parseFromJson(JSONObject jo){
 		if(jo == null){

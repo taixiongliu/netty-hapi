@@ -71,7 +71,7 @@ public class HapiHttpSslContextFactory {
 	
 	/**
 	 * create normal SSL engine.
-	 * @return
+	 * @return SSLEngine
 	 */
 	public SSLEngine createSSLEngine() {
 		if(kmf == null){
@@ -97,7 +97,7 @@ public class HapiHttpSslContextFactory {
 	
 	/**
 	 * create object SslContext.
-	 * @return
+	 * @return SslContext
 	 */
 	public SslContext createSslContext(){
 		if(kmf == null){
