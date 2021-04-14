@@ -84,7 +84,7 @@ public class NettyHttpServer{
                      ch.pipeline().addLast(new HttpResponseEncoder());
                      // decode HTTP request message
                      ch.pipeline().addLast(new HttpRequestDecoder());
-                     // max receive length 4KB
+                     // max receive length 4MB
                      ch.pipeline().addLast(new HttpObjectAggregator(4194304));
                      ch.pipeline().addLast(new ChunkedWriteHandler());
                      

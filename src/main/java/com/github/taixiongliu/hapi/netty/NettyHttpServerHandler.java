@@ -147,6 +147,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 		}
 		// Write the initial line and the header.
 		ctx.write(response);
+		
 
 		// Write the content.
 		ChannelFuture sendFileFuture;
@@ -215,7 +216,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	 *            file to extract content type
 	 */
 	private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
-		SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
+		SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.CHINA);
 		dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
 		// Date header
@@ -360,14 +361,15 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 				// file route type
 				if (responseImpl.getRouteType().equals(HapiRouteType.FILE)) {
 					fileResponse(ctx, responseImpl);
+					ctx.flush();
 				} else {
 					ctx.write(setResponse(responseImpl));
+					ctx.flush();
+					ctx.close();
+					// release object
+					ReferenceCountUtil.release(msg);
+					channel.close();
 				}
-				ctx.flush();
-				ctx.close();
-				// release object
-				ReferenceCountUtil.release(msg);
-				channel.close();
 				return;
 			}
 			// post method request
