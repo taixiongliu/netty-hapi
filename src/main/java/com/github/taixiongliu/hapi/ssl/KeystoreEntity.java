@@ -2,7 +2,7 @@ package com.github.taixiongliu.hapi.ssl;
 
 /**
  * <b>Keystore entity</b>
- * <br/><br/>
+ * 
  * Keystore configuration entity.
  * @author taixiong.liu
  * 

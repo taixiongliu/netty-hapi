@@ -7,7 +7,7 @@ import java.io.InputStream;
 
 /**
  * <b>Https key store</b>
- * <br/><br/>
+ * 
  * Load the file generated with the JDK 'keytool' command, suffix 'keystore'.
  * @author taixiong.liu
  */

@@ -16,7 +16,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 
 /**
  * <b>SSL Factory</b>
- * <br/><br/>
+ * 
  * Build SSL engine or handler.
  * @author taixiong.liu
  */
@@ -45,7 +45,7 @@ public class HapiHttpSslContextFactory {
 	
 	/**
 	 * Initialization configuration must be done.
-	 * @param entity
+	 * @param entity key store info
 	 */
 	public synchronized void init(KeystoreEntity entity){
 		if(isInit){
