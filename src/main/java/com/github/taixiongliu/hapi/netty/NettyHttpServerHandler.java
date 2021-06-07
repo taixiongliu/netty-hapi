@@ -239,7 +239,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 
 			// get ip if with NGINX proxy
 			ip = request.headers().get("X-Real-IP");
-			if (ip == null) {
+			if (ip == null || ip.trim().equals("")) {
 				InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
 				ip = insocket.getAddress().getHostAddress();
 			}

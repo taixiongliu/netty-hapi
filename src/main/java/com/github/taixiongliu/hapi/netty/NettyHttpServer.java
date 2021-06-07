@@ -32,6 +32,8 @@ public class NettyHttpServer{
     private boolean isSSL;
     private KeystoreEntity entity;
     private String uploadPath;
+    //default max receive data one time. 
+    private int maxReceive = Integer.MAX_VALUE;
 
     public NettyHttpServer(int port, HttpRequestHandler handler, String uploadPath){
     	this(port, handler, uploadPath, null);
@@ -45,6 +47,11 @@ public class NettyHttpServer{
         this.uploadPath = uploadPath;
     }
     
+    /**
+     * build https support.
+     * @param entity
+     * @return self
+     */
     public NettyHttpServer buildHttps(KeystoreEntity entity){
     	if(entity == null){
     		return this;
@@ -53,7 +60,19 @@ public class NettyHttpServer{
     	this.entity = entity;
     	
     	return this;
-    } 
+    }
+    
+    /**
+     * set max receive length
+     * @param maxLength
+     * @return self
+     */
+    public void setMaxReceiveLength(int length){
+    	if(length < 1){
+    		return ;
+    	}
+    	this.maxReceive = length;
+    }
 
     public void run() throws Exception {
     	if(isSSL && entity != null){
@@ -85,7 +104,7 @@ public class NettyHttpServer{
                      // decode HTTP request message
                      ch.pipeline().addLast(new HttpRequestDecoder());
                      // max receive length 4MB
-                     ch.pipeline().addLast(new HttpObjectAggregator(4194304));
+                     ch.pipeline().addLast(new HttpObjectAggregator(NettyHttpServer.this.maxReceive));
                      ch.pipeline().addLast(new ChunkedWriteHandler());
                      
                      BaseHapiHttpRequestImpl base = null;

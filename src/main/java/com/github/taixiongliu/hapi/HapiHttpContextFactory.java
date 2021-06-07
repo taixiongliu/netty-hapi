@@ -25,6 +25,11 @@ import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
  *
  */
 public class HapiHttpContextFactory {
+	public final static int default_port = 8100;
+	public final static String default_root_path = "webcontent";
+	public final static String default_upload_path = "uploads";
+	public final static int default_max_receive = 4194304;
+	
 	private static HapiHttpContextFactory factory = null;
 	private static Object look = new Object();
 	public static HapiHttpContextFactory getInstance(){
@@ -58,7 +63,7 @@ public class HapiHttpContextFactory {
     	this.entity = entity;
     	
     	return this;
-    } 
+    }
 	
 	/**
 	 * <b>create HAPI context, default server port 8100</b>
@@ -84,7 +89,14 @@ public class HapiHttpContextFactory {
 		String mpackage = map.get("context:route-scan-package");
 		rootPath = map.get("context:root-path");
 		uploadPath = map.get("context:upload-path");
-		maxLength = null;
+		int maxReceive = default_max_receive;
+		try {
+			maxReceive = new Integer(map.get("context:receive-max-length"));
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		maxLength = null;		
 		try {
 			maxLength = new Integer(map.get("context:upload-max-length"));
 		} catch (Exception e) {
@@ -92,10 +104,10 @@ public class HapiHttpContextFactory {
 		}
 		
 		if(rootPath == null || rootPath.trim().equals("")){
-			rootPath = "webcontent";
+			rootPath = default_root_path;
 		}
 		if(uploadPath == null || uploadPath.trim().equals("")){
-			uploadPath = "uploads";
+			uploadPath = default_upload_path;
 		}
 		//create web root path
 		File rp = new File(rootPath);
@@ -109,14 +121,16 @@ public class HapiHttpContextFactory {
 			up.mkdir();
 		}
 		
-		int port = mport == null ? 8100 : Integer.parseInt(mport);
+		int port = mport == null ? default_port : Integer.parseInt(mport);
 		if(mpackage != null && !mpackage.trim().equals("")){
 			//scan route
 			loadRoute(mpackage);
 		}
 		
 		try {
-			new NettyHttpServer(port, new HapiHttpService(), uploadPathString, clazz).buildHttps(entity).run();
+			NettyHttpServer server = new NettyHttpServer(port, new HapiHttpService(), uploadPathString, clazz).buildHttps(entity);
+			server.setMaxReceiveLength(maxReceive);
+			server.run();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
