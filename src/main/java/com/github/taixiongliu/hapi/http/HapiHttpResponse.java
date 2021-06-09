@@ -1,6 +1,6 @@
 package com.github.taixiongliu.hapi.http;
 
-import com.github.taixiongliu.hapi.route.HapiRouteType;
+import java.io.OutputStream;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -13,5 +13,5 @@ public interface HapiHttpResponse {
 	public void setStatus(HttpResponseStatus status);
 	public void setContent(String content);
 	public void setHead(String name, String value);
-	public void setRouteType(HapiRouteType routeType);
+	public OutputStream getOutputStream(String contentType);
 }

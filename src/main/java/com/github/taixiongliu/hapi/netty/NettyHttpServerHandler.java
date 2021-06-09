@@ -24,7 +24,6 @@ import com.github.taixiongliu.hapi.HapiHttpContextFactory;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
 import com.github.taixiongliu.hapi.http.HttpUrlErrorException;
-import com.github.taixiongliu.hapi.route.HapiRouteType;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -136,7 +135,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 
 		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
 		HttpUtil.setContentLength(response, fileLength);
-		setContentTypeHeader(response, file);
+		setContentTypeHeader(response, file.getPath());
 		setDateAndCacheHeaders(response, file);
 
 		Map<String, String> map = nettyResponse.heads();
@@ -193,6 +192,89 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 		}
 	}
+	
+	private void streamResponse(ChannelHandlerContext ctx, final DefaultHapiHttpResponseImpl nettyResponse) throws Exception {
+		final boolean keepAlive = HttpUtil.isKeepAlive(request);
+
+		if(!nettyResponse.isStream() || nettyResponse.getOutputStreamFile() == null){
+			nettyResponse.setStatus(HttpResponseStatus.NOT_FOUND);
+			nettyResponse.setContent("404, file not found...");
+			ctx.write(setResponse(nettyResponse));
+			return;
+		}
+		File file = nettyResponse.getOutputStreamFile();
+		RandomAccessFile raf;
+		try {
+			raf = new RandomAccessFile(file, "r");
+		} catch (FileNotFoundException ignore) {
+			nettyResponse.setStatus(HttpResponseStatus.NOT_FOUND);
+			nettyResponse.setContent("404, file not found...");
+			ctx.write(setResponse(nettyResponse));
+			return;
+		}
+		long fileLength = raf.length();
+
+		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+		HttpUtil.setContentLength(response, fileLength);
+		response.headers().set(HttpHeaderNames.CONTENT_TYPE, nettyResponse.getContentType());
+		setDateAndCacheHeaders(response, file);
+
+		Map<String, String> map = nettyResponse.heads();
+		if (map != null) {
+			for (String key : map.keySet()) {
+				response.headers().set(key, map.get(key));
+			}
+		}
+		// Write the initial line and the header.
+		ctx.write(response);
+		
+
+		// Write the content.
+		ChannelFuture sendFileFuture;
+		ChannelFuture lastContentFuture;
+		if (ctx.pipeline().get(SslHandler.class) == null) {
+			sendFileFuture = ctx.write(new DefaultFileRegion(raf.getChannel(), 0, fileLength),
+					ctx.newProgressivePromise());
+			// Write the end marker.
+			lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+		} else {
+			sendFileFuture = ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(raf, 0, fileLength, 8192)),
+					ctx.newProgressivePromise());
+			// HttpChunkedInput will write the end marker (LastHttpContent) for
+			// us.
+			lastContentFuture = sendFileFuture;
+		}
+
+		sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+			public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+				if (total < 0) { // total unknown
+					// -
+					// -
+					// System.err.println(future.channel() + " Transfer
+					// progress: " + progress);
+				} else {
+					// -
+					// -
+					// System.err.println(future.channel() + " Transfer
+					// progress: " + progress + " / " + total);
+				}
+			}
+
+			public void operationComplete(ChannelProgressiveFuture future) {
+				// -
+				// -
+				// System.err.println(future.channel() + " Transfer complete.");
+				//关闭流
+				nettyResponse.closeStream();
+			}
+		});
+
+		// Decide whether to close the connection or not.
+		if (!keepAlive) {
+			// Close the connection when the whole content is written out.
+			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+		}
+	}
 
 	/**
 	 * Sets the content type header for the HTTP Response
@@ -202,9 +284,9 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	 * @param file
 	 *            file to extract content type
 	 */
-	private static void setContentTypeHeader(HttpResponse response, File file) {
+	private static void setContentTypeHeader(HttpResponse response, String filePath) {
 		MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
-		response.headers().set(HttpHeaderNames.CONTENT_TYPE, mimeTypesMap.getContentType(file.getPath()));
+		response.headers().set(HttpHeaderNames.CONTENT_TYPE, mimeTypesMap.getContentType(filePath));
 	}
 
 	/**
@@ -359,16 +441,24 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 				DefaultHapiHttpResponseImpl responseImpl = new DefaultHapiHttpResponseImpl();
 				handler.onGet(requestImpl, responseImpl);
 				// file route type
-				if (responseImpl.getRouteType().equals(HapiRouteType.FILE)) {
-					fileResponse(ctx, responseImpl);
-					ctx.flush();
-				} else {
-					ctx.write(setResponse(responseImpl));
-					ctx.flush();
-					ctx.close();
-					// release object
-					ReferenceCountUtil.release(msg);
-					channel.close();
+				switch (responseImpl.getRouteType()) {
+					case FILE:
+						fileResponse(ctx, responseImpl);
+						ctx.flush();
+						break;
+					case STREAM:
+						streamResponse(ctx, responseImpl);
+						ctx.flush();
+						break;
+	
+					default:
+						ctx.write(setResponse(responseImpl));
+						ctx.flush();
+						ctx.close();
+						// release object
+						ReferenceCountUtil.release(msg);
+						channel.close();
+						break;
 				}
 				return;
 			}

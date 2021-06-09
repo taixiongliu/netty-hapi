@@ -6,5 +6,5 @@
 	<context:upload-path>uploads</context:upload-path>
 	<context:upload-max-length>5000</context:upload-max-length>
 	<!-- receive max length 0=Integer.MAX_VALUE default=4M -->
-	<context:receive-max-length></context:upload-max-length>
+	<context:receive-max-length></context:receive-max-length>
 </beans>

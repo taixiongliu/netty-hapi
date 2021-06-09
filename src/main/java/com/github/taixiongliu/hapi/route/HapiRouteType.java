@@ -1,7 +1,7 @@
 package com.github.taixiongliu.hapi.route;
 
 public enum HapiRouteType {
-	BODY(1), FILE(2), PATH(3);
+	BODY(1), FILE(2), PATH(3), STREAM(4);
 	private int value;
 	private HapiRouteType(int value) {
 		// TODO Auto-generated constructor stub

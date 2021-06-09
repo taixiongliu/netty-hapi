@@ -3,6 +3,7 @@ package com.github.taixiongliu.hapi;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 
+import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
 import com.github.taixiongliu.hapi.http.HapiHttpRequest;
 import com.github.taixiongliu.hapi.http.HapiHttpResponse;
 import com.github.taixiongliu.hapi.netty.HttpRequestHandler;
@@ -24,7 +25,7 @@ public class HapiHttpService implements HttpRequestHandler{
 		// TODO Auto-generated constructor stub
 	}
 
-	public void onGet(HapiHttpRequest request, HapiHttpResponse response) {
+	public void onGet(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
 		// TODO Auto-generated method stub
 		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl());
 		if(router == null){
@@ -38,9 +39,7 @@ public class HapiHttpService implements HttpRequestHandler{
 			return ;
 		}
 		//set route type.
-		if(router.getRouteType().equals(HapiRouteType.FILE)){
-			response.setRouteType(router.getRouteType());
-		}
+		response.setRouteType(router.getRouteType());
 		if(router.getRouteType().equals(HapiRouteType.PATH)){
 			response.setRouteType(HapiRouteType.FILE);
 		}
@@ -78,7 +77,7 @@ public class HapiHttpService implements HttpRequestHandler{
 		}
 	}
 
-	public void onPost(HapiHttpRequest request, HapiHttpResponse response) {
+	public void onPost(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
 		// TODO Auto-generated method stub
 		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl());
 		if(router == null){
@@ -90,6 +89,10 @@ public class HapiHttpService implements HttpRequestHandler{
 			response.setStatus(HttpResponseStatus.FORBIDDEN);
 			response.setContent("403 context not support get request...");
 			return ;
+		}
+		response.setRouteType(router.getRouteType());
+		if(router.getRouteType().equals(HapiRouteType.PATH)){
+			response.setRouteType(HapiRouteType.FILE);
 		}
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();
@@ -125,7 +128,7 @@ public class HapiHttpService implements HttpRequestHandler{
 		}
 	}
 
-	public void onError(HttpMethod fromMethod, HapiHttpResponse response, Exception e) {
+	public void onError(HttpMethod fromMethod, DefaultHapiHttpResponseImpl response, Exception e) {
 		// TODO Auto-generated method stub
 		e.printStackTrace();
 	}
