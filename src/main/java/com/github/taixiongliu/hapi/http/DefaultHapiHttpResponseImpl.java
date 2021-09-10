@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.github.taixiongliu.hapi.HapiHttpContextFactory;
 import com.github.taixiongliu.hapi.route.HapiRouteType;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -69,6 +70,9 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 	public File getOutputStreamFile(){
 		return tempFile;
 	}
+	public OutputStream getOutputStream() {
+		return getOutputStream("application/octet-stream");
+	}
 	public OutputStream getOutputStream(String contentType) {
 		if(contentType == null || contentType.trim().equals("")){
 			return null;
@@ -77,10 +81,11 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 		this.contentType = contentType;
 		
 		String fileName = getFileName();
-		String filePath = "tempFile/"+fileName;
+		
+		String filePath = HapiHttpContextFactory.getInstance().getCachePath()+File.separatorChar+fileName;
         
 		try {
-			File path = new File("tempFile");
+			File path = new File(HapiHttpContextFactory.getInstance().getCachePath());
 			if(!path.exists()){
 				path.mkdir();
 			}
@@ -90,7 +95,7 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 			//if exists, try again
 			if(temp.exists()){
 				fileName = getFileName();
-				filePath = "tempFile/"+fileName;
+				filePath = HapiHttpContextFactory.getInstance().getCachePath()+File.separatorChar+fileName;
 				temp = new File(filePath);
 				//give up.
 				if(temp.exists()){

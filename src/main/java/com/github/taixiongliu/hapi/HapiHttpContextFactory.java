@@ -28,6 +28,7 @@ public class HapiHttpContextFactory {
 	public final static int default_port = 8100;
 	public final static String default_root_path = "webcontent";
 	public final static String default_upload_path = "uploads";
+	public final static String default_cache_path = "cache";
 	public final static int default_max_receive = 4194304;
 	
 	private static HapiHttpContextFactory factory = null;
@@ -50,6 +51,7 @@ public class HapiHttpContextFactory {
     private KeystoreEntity entity;
     private String rootPath;
     private String uploadPath;
+    private String cachePath;
     private Integer maxLength;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
@@ -89,6 +91,7 @@ public class HapiHttpContextFactory {
 		String mpackage = map.get("context:route-scan-package");
 		rootPath = map.get("context:root-path");
 		uploadPath = map.get("context:upload-path");
+		cachePath = map.get("context:cache-path");
 		int maxReceive = default_max_receive;
 		try {
 			maxReceive = new Integer(map.get("context:receive-max-length"));
@@ -108,6 +111,9 @@ public class HapiHttpContextFactory {
 		}
 		if(uploadPath == null || uploadPath.trim().equals("")){
 			uploadPath = default_upload_path;
+		}
+		if(cachePath == null || cachePath.trim().equals("")){
+			cachePath = default_cache_path;
 		}
 		//create web root path
 		File rp = new File(rootPath);
@@ -151,6 +157,10 @@ public class HapiHttpContextFactory {
 	public String getUploadPath(){
 		return uploadPath;
 	}
+	public String getCachePath() {
+		return cachePath;
+	}
+
 	public Integer getMaxLength(){
 		return maxLength;
 	}
