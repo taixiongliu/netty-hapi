@@ -13,5 +13,6 @@ public interface HapiHttpResponse {
 	public void setStatus(HttpResponseStatus status);
 	public void setContent(String content);
 	public void setHead(String name, String value);
+	public OutputStream getOutputStream();
 	public OutputStream getOutputStream(String contentType);
 }
