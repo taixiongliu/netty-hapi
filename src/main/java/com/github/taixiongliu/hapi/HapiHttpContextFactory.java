@@ -9,11 +9,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.taixiongliu.hapi.dom.DOMParser;
+import com.github.taixiongliu.hapi.exception.RouteException;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.netty.NettyHttpServer;
 import com.github.taixiongliu.hapi.route.ClassScanner;
 import com.github.taixiongliu.hapi.route.HapiHttpMethod;
 import com.github.taixiongliu.hapi.route.HapiRouteType;
+import com.github.taixiongliu.hapi.route.ProxyMapping;
 import com.github.taixiongliu.hapi.route.RequestMapping;
 import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
@@ -72,7 +74,20 @@ public class HapiHttpContextFactory {
 	 * @param context configuration file name
 	 */
 	public void createContext(String context){
-		this.createContext(context, null);
+		this.createContext(context, null , null);
+	}
+	
+	/**
+	 * <b>create HAPI context, default server port 8100</b>
+	 * @param context configuration file name
+	 * @param defPackage package of route scan
+	 */
+	public void createContext(String context, String defPackage){
+		this.createContext(context, defPackage , null);
+	}
+	
+	public void createContext(String context, Class<? extends BaseHapiHttpRequestImpl> clazz){
+		this.createContext(context, null , clazz);
 	}
 	
 	/**
@@ -80,11 +95,15 @@ public class HapiHttpContextFactory {
 	 * @param context configuration file name
 	 * @param clazz parse request realization extends {@link com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl} class
 	 */
-	public void createContext(String context, Class<? extends BaseHapiHttpRequestImpl> clazz){
+	public void createContext(String context, String defPackage, Class<? extends BaseHapiHttpRequestImpl> clazz){
 		DOMParser parser = new DOMParser();
 		Map<String, String> map = parser.parseMap(context);
 		if(map == null){
 			map = new HashMap<String, String>();
+		}
+		StringBuilder sb = new StringBuilder();
+		if(defPackage != null && !defPackage.trim().equals("")){
+			sb.append(defPackage);
 		}
 		
 		String mport = map.get("context:port");
@@ -129,8 +148,23 @@ public class HapiHttpContextFactory {
 		
 		int port = mport == null ? default_port : Integer.parseInt(mport);
 		if(mpackage != null && !mpackage.trim().equals("")){
+			sb.append(";");
+			sb.append(mpackage);
+		}
+		String strPackage = sb.toString();
+		if(strPackage != null && !strPackage.trim().equals("")){
 			//scan route
-			loadRoute(mpackage);
+			if(strPackage.contains(";")){
+				String[] arr = strPackage.split(";");
+				for(String pk : arr){
+					if(pk == null || pk.trim().equals("")){
+						continue;
+					}
+					loadRoute(pk);
+				}
+			}else{
+				loadRoute(strPackage);
+			}
 		}
 		
 		try {
@@ -148,7 +182,7 @@ public class HapiHttpContextFactory {
 		if(temp == null){
 			return pathRouter(url);
 		}
-		return map.get(url);
+		return temp;
 	}
 	
 	public String getRootPath(){
@@ -193,8 +227,8 @@ public class HapiHttpContextFactory {
 		if((path == null|| path.isEmpty()) && root == null){
 			return null;
 		}
-		//normal path must start with '/[value]', value length must greater than or equal to 1. 
-		if(url == null || url.length() < 2){
+		//normal path must start with '/', value length must greater than or equal to 1. 
+		if(url == null || url.length() < 1){
 			return null;
 		}
 		Router temp = null;
@@ -202,7 +236,12 @@ public class HapiHttpContextFactory {
 			Router router = path.get(key);
 			String path = router.getPath();
 			int pathLen = path.length();
-			if(url.length() <= pathLen){
+			//all path
+			if(path.endsWith("*/")){
+				pathLen -= 2;
+				path = path.substring(0, pathLen);
+			}
+			if(url.length() < pathLen){
 				continue;
 			}
 			if(url.substring(0, pathLen).equals(path)){
@@ -227,10 +266,21 @@ public class HapiHttpContextFactory {
 			for (Annotation annotation : annotations) {
 				if(annotation instanceof RequestMapping){
 					RequestMapping mapping = (RequestMapping) annotation;
-					if(mapping.type().equals(HapiRouteType.PATH)){
-						addPathRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
-					}else{
+					try {
 						addRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
+					} catch (RouteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
+				if(annotation instanceof ProxyMapping){
+					ProxyMapping mapping = (ProxyMapping) annotation;
+					try {
+						addPathRouter(clazz, med, route, mapping.value(), mapping.method(), mapping.type());
+					} catch (RouteException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 					break;
 				}
@@ -238,18 +288,24 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
-	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType){
+	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			return ;
 		}
 		if(route == null){
 			route = "";
 		}
-		if(route.contains("/")){
-			route.replace("/", "");
+		if(route.startsWith("/")){
+			route = route.substring(1, route.length());
 		}
-		if(position.contains("/")){
-			position.replace("/", "");
+		if(route.endsWith("/")){
+			route = route.substring(0, route.length() - 1);
+		}
+		if(position.startsWith("/")){
+			position = position.substring(1, position.length());
+		}
+		if(position.endsWith("/")){
+			position = position.substring(0, position.length() - 1);
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("/");
@@ -274,21 +330,30 @@ public class HapiHttpContextFactory {
 		router.setPosition(position);
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
+		if(map.get(router.getPath()) != null){
+			throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' was registed by other package.");
+		}
 		map.put(router.getPath(), router);
 	}
 	
-	private void addPathRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType){
+	private void addPathRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			position = "";
 		}
 		if(route == null){
 			route = "";
 		}
-		if(route.contains("/")){
-			route.replace("/", "");
+		if(route.startsWith("/")){
+			route = route.substring(1, route.length());
 		}
-		if(position.contains("/")){
-			position.replace("/", "");
+		if(route.endsWith("/")){
+			route = route.substring(0, route.length() - 1);
+		}
+		if(position.startsWith("/")){
+			position = position.substring(1, position.length());
+		}
+		if(position.endsWith("/")){
+			position = position.substring(0, position.length() - 1);
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("/");
@@ -317,8 +382,14 @@ public class HapiHttpContextFactory {
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
 		if(router.getPath().equals("/") || router.getPath().equals("/*/")){
+			if(root != null){
+				throw new RouteException(clazz.getName()+": root proxy '"+router.getPath()+"' was registed by other package.");
+			}
 			root = router;
 			return ;
+		}
+		if(path.get(router.getPath()) != null){
+			throw new RouteException(clazz.getName()+": proxy '"+router.getPath()+"' was registed by other package.");
 		}
 		path.put(router.getPath(), router);
 	}

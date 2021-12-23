@@ -8,7 +8,6 @@ import com.github.taixiongliu.hapi.http.HapiHttpRequest;
 import com.github.taixiongliu.hapi.http.HapiHttpResponse;
 import com.github.taixiongliu.hapi.netty.HttpRequestHandler;
 import com.github.taixiongliu.hapi.route.HapiHttpMethod;
-import com.github.taixiongliu.hapi.route.HapiRouteType;
 import com.github.taixiongliu.hapi.route.Router;
 
 import io.netty.handler.codec.http.HttpMethod;
@@ -40,9 +39,7 @@ public class HapiHttpService implements HttpRequestHandler{
 		}
 		//set route type.
 		response.setRouteType(router.getRouteType());
-		if(router.getRouteType().equals(HapiRouteType.PATH)){
-			response.setRouteType(HapiRouteType.FILE);
-		}
+		
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();
 		int len = parameters.length;
@@ -91,9 +88,7 @@ public class HapiHttpService implements HttpRequestHandler{
 			return ;
 		}
 		response.setRouteType(router.getRouteType());
-		if(router.getRouteType().equals(HapiRouteType.PATH)){
-			response.setRouteType(HapiRouteType.FILE);
-		}
+		
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();
 		int len = parameters.length;

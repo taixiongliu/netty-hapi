@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans>
-	<context:route-scan-package>com.github.taixiongliu.hapi.r</context:route-scan-package>
+	<context:route-scan-package>test.controller</context:route-scan-package>
 	<context:port>8100</context:port>
 	<context:root-path>webcontent</context:root-path>
 	<context:upload-path>uploads</context:upload-path>

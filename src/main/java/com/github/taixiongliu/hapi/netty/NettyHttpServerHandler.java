@@ -280,7 +280,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	 *
 	 * @param response
 	 *            HTTP response
-	 * @param file
+	 * @param filePath
 	 *            file to extract content type
 	 */
 	private static void setContentTypeHeader(HttpResponse response, String filePath) {

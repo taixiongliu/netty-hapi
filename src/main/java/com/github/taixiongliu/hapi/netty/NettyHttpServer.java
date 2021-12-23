@@ -64,8 +64,7 @@ public class NettyHttpServer{
     
     /**
      * set max receive length
-     * @param maxLength
-     * @return self
+     * @param length
      */
     public void setMaxReceiveLength(int length){
     	if(length < 1){

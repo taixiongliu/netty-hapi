@@ -32,7 +32,7 @@ public class AutoHapiHttpRequestImpl extends BaseHapiHttpRequestImpl{
     	if(isJson){
     		return parseFromJson(jo);
     	}
-		return getParameterMapByUrlParameter(content, false);
+		return getParameterMapByUrlParameter(content);
 	}
 	
 	/**

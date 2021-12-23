@@ -42,7 +42,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 			}
 			url = strs[0];
 			if(strs.length == 2){
-				parameters = getParameterMapByUrlParameter(strs[1], false);
+				parameters = getParameterMapByUrlParameter(strs[1]);
 			}
 			return ;
 		}
@@ -57,17 +57,10 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	 * <b>default request parse method</b>
 	 * 
 	 * @param urlParameter string of parameter text, linked with character {@code '=' and '&'}
-	 * @param exactMatch true = check special key words
 	 * @return parameter map list
 	 * @throws HttpUrlErrorException invalid url
 	 */
-	protected Map<String, String> getParameterMapByUrlParameter(String urlParameter, boolean exactMatch) throws HttpUrlErrorException{
-		if(exactMatch){
-			int index = checkSymbol(urlParameter);
-			if(index > 0){
-				throw new HttpUrlErrorException("invalid symbol of "+String.valueOf(url.charAt(index))+" at index "+index);
-			}
-		}
+	protected Map<String, String> getParameterMapByUrlParameter(String urlParameter) throws HttpUrlErrorException{
 		if(urlParameter == null || urlParameter.equals("")){
 			return new HashMap<String, String>();
 		}
@@ -111,25 +104,6 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 			throw new HttpUrlErrorException("invalid url format error");
 		}
 		return map;
-	}
-	
-	/**
-	 * <b>check special key words</b>
-	 * 
-	 * @param urlContent text content
-	 * @return it is none when return -1
-	 */
-	protected int checkSymbol(String urlContent){
-		int res = -1;
-		char[] specialSymbol = {' ','-','+','*'};
-		for(char a : specialSymbol){
-			int index = urlContent.indexOf(a);
-			if(index > 0){
-				res = index;
-				break;
-			}
-		}
-		return res;
 	}
 	
 	public void setIpAddress(String ip){
