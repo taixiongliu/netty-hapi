@@ -2,12 +2,17 @@ package com.github.taixiongliu.hapi;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.github.taixiongliu.hapi.autowired.Autowired;
+import com.github.taixiongliu.hapi.autowired.AutowiredField;
+import com.github.taixiongliu.hapi.autowired.AutowiredHandler;
 import com.github.taixiongliu.hapi.dom.DOMParser;
 import com.github.taixiongliu.hapi.exception.RouteException;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
@@ -51,6 +56,7 @@ public class HapiHttpContextFactory {
 	private Router root;
 	private Map<String, Router> path;
     private KeystoreEntity entity;
+    private AutowiredHandler autowiredHandler;
     private String rootPath;
     private String uploadPath;
     private String cachePath;
@@ -61,10 +67,16 @@ public class HapiHttpContextFactory {
 		path = new ConcurrentHashMap<String, Router>();
 		root = null;
 		entity = null;
+		autowiredHandler = null;
 	}
 	
 	public HapiHttpContextFactory buildHttps(KeystoreEntity entity){
     	this.entity = entity;
+    	
+    	return this;
+    }
+	public HapiHttpContextFactory buildAutowired(AutowiredHandler handler){
+    	this.autowiredHandler = handler;
     	
     	return this;
     }
@@ -257,6 +269,25 @@ public class HapiHttpContextFactory {
 	}
 	
 	private void scanRoute(Class<?> clazz, String route){
+		AutowiredField[] fields = null;
+		if(autowiredHandler != null){
+			Field[] array = clazz.getDeclaredFields();
+			List<AutowiredField> list = new ArrayList<AutowiredField>();
+			for(Field field : array){
+				Annotation[] annotations = field.getAnnotations();
+				if(annotations == null || annotations.length < 1){
+					continue;
+				}
+				for (Annotation annotation : annotations) {
+					if(annotation instanceof Autowired){
+						Autowired anno = (Autowired) annotation;
+						list.add(new AutowiredField(field, anno.value()));
+					}
+				}
+			}
+			fields = new AutowiredField[list.size()];
+			list.toArray(fields);
+		}
 		Method[] meds = clazz.getMethods();
 		for (Method med : meds) {
 			Annotation[] annotations = med.getAnnotations();
@@ -267,7 +298,7 @@ public class HapiHttpContextFactory {
 				if(annotation instanceof RequestMapping){
 					RequestMapping mapping = (RequestMapping) annotation;
 					try {
-						addRouter(clazz, med, route, mapping.value(), mapping.method(),mapping.type());
+						addRouter(clazz, fields, med, route, mapping.value(), mapping.method(),mapping.type());
 					} catch (RouteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -277,7 +308,7 @@ public class HapiHttpContextFactory {
 				if(annotation instanceof ProxyMapping){
 					ProxyMapping mapping = (ProxyMapping) annotation;
 					try {
-						addPathRouter(clazz, med, route, mapping.value(), mapping.method(), mapping.type());
+						addPathRouter(clazz, fields, med, route, mapping.value(), mapping.method(), mapping.type());
 					} catch (RouteException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -288,7 +319,7 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
-	private void addRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private void addRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			return ;
 		}
@@ -319,7 +350,18 @@ public class HapiHttpContextFactory {
 		router.setPath(sb.toString());
 		router.setMd(med);
 		try {
-			router.setClazz(clazz.newInstance());
+			Object instance = clazz.newInstance();
+			if(fields != null && fields.length > 0 && autowiredHandler != null){
+				for(AutowiredField autowiredField : fields){
+					Field field = autowiredField.getField();
+					Object obj = autowiredHandler.onAutowired(field.getType(), autowiredField.getValue());
+					if(obj != null){
+						field.setAccessible(true);
+						field.set(instance, obj);
+					}
+				}
+			}
+			router.setClazz(instance);
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -336,7 +378,7 @@ public class HapiHttpContextFactory {
 		map.put(router.getPath(), router);
 	}
 	
-	private void addPathRouter(Class<?> clazz, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			position = "";
 		}
@@ -370,7 +412,18 @@ public class HapiHttpContextFactory {
 		router.setPath(sb.toString());
 		router.setMd(med);
 		try {
-			router.setClazz(clazz.newInstance());
+			Object instance = clazz.newInstance();
+			if(fields != null && fields.length > 0 && autowiredHandler != null){
+				for(AutowiredField autowiredField : fields){
+					Field field = autowiredField.getField();
+					Object obj = autowiredHandler.onAutowired(field.getType(), autowiredField.getValue());
+					if(obj != null){
+						field.setAccessible(true);
+						field.set(instance, obj);
+					}
+				}
+			}
+			router.setClazz(instance);
 		} catch (InstantiationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

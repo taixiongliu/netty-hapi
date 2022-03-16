@@ -1,5 +1,6 @@
 package test.route;
 
+import com.github.taixiongliu.hapi.autowired.Autowired;
 import com.github.taixiongliu.hapi.http.HapiHttpRequest;
 import com.github.taixiongliu.hapi.http.HapiHttpResponse;
 import com.github.taixiongliu.hapi.route.ProxyMapping;
@@ -11,8 +12,12 @@ import com.github.taixiongliu.hapi.route.Route;
  */
 @Route
 public class Index {
+	@Autowired
+	private String name;
+	
 	@RequestMapping("index.html")
 	public void index(HapiHttpRequest request, HapiHttpResponse response){
+		System.out.println(name);
 		response.setContent("index page.");
 	}
 	
