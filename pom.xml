@@ -112,7 +112,7 @@
 		<jdk.version>1.8</jdk.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netty.version>4.1.43.Final</netty.version>
-		<fastjson.version>1.2.70</fastjson.version>
+		<fastjson.version>1.2.83</fastjson.version>
 	</properties>
 
 	<dependencies>
