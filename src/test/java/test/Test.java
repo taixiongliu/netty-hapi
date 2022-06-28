@@ -8,7 +8,8 @@ import com.github.taixiongliu.hapi.autowired.AutowiredHandler;
  */
 public class Test {
 	public static void main(String[] args) {
-		HapiHttpContextFactory.getInstance().buildAutowired(new AutowiredHandler() {
+		//version request:http://127.0.0.1:8100/v1/index.html  or   http://127.0.0.1:8100/v2/index.html
+		HapiHttpContextFactory.getInstance().buildVersion("v1").buildVersion("v2").buildAutowired(new AutowiredHandler() {
 			
 			@Override
 			public Object onAutowired(Class<?> clazz, String value) {

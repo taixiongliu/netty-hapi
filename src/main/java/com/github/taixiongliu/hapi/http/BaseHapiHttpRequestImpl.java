@@ -18,6 +18,8 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	private HttpRequest request;
 	private String ip;
 	private Map<String, String> parameters;
+	private String version;
+	private String reUrl;
 	
 	public abstract Map<String, String> parseParameter(String content) throws HttpUrlErrorException;
 	
@@ -129,5 +131,21 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	public HttpHeaders heads() {
 		// TODO Auto-generated method stub
 		return request.headers();
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	public String getReUrl() {
+		return reUrl;
+	}
+
+	public void setReUrl(String reUrl) {
+		this.reUrl = reUrl;
 	}
 }

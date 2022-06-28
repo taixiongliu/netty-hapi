@@ -3,6 +3,7 @@ package com.github.taixiongliu.hapi;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 
+import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
 import com.github.taixiongliu.hapi.http.HapiHttpRequest;
 import com.github.taixiongliu.hapi.http.HapiHttpResponse;
@@ -32,6 +33,10 @@ public class HapiHttpService implements HttpRequestHandler{
 			response.setContent("404 context not found...");
 			return ;
 		}
+		BaseHapiHttpRequestImpl brequest = ((BaseHapiHttpRequestImpl)request);
+		brequest.setVersion(router.getVersion());
+		brequest.setReUrl(router.getReUrl());
+		
 		if(router.getHttpMethod().equals(HapiHttpMethod.POST)){
 			response.setStatus(HttpResponseStatus.FORBIDDEN);
 			response.setContent("403 context not support post request...");
@@ -82,6 +87,9 @@ public class HapiHttpService implements HttpRequestHandler{
 			response.setContent("404 context not found...");
 			return ;
 		}
+		BaseHapiHttpRequestImpl brequest = ((BaseHapiHttpRequestImpl)request);
+		brequest.setVersion(router.getVersion());
+		brequest.setReUrl(router.getReUrl());
 		if(router.getHttpMethod().equals(HapiHttpMethod.GET)){
 			response.setStatus(HttpResponseStatus.FORBIDDEN);
 			response.setContent("403 context not support get request...");

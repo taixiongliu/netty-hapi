@@ -6,9 +6,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 import com.github.taixiongliu.hapi.autowired.Autowired;
 import com.github.taixiongliu.hapi.autowired.AutowiredField;
@@ -24,6 +25,7 @@ import com.github.taixiongliu.hapi.route.ProxyMapping;
 import com.github.taixiongliu.hapi.route.RequestMapping;
 import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
+import com.github.taixiongliu.hapi.route.VersionRouter;
 import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
 
 /**
@@ -61,13 +63,16 @@ public class HapiHttpContextFactory {
     private String uploadPath;
     private String cachePath;
     private Integer maxLength;
+    private Set<String> versions;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
-		map = new ConcurrentHashMap<String, Router>();
-		path = new ConcurrentHashMap<String, Router>();
+		//取消使用ConcurrentHashMap
+		map = new HashMap<String, Router>();
+		path = new HashMap<String, Router>();
 		root = null;
 		entity = null;
 		autowiredHandler = null;
+		versions = new HashSet<String>();
 	}
 	
 	public HapiHttpContextFactory buildHttps(KeystoreEntity entity){
@@ -80,6 +85,11 @@ public class HapiHttpContextFactory {
     	
     	return this;
     }
+	public HapiHttpContextFactory buildVersion(String version){
+		addVersion(version);
+
+    	return this;
+	}
 	
 	/**
 	 * <b>create HAPI context, default server port 8100</b>
@@ -190,9 +200,20 @@ public class HapiHttpContextFactory {
 	}
 	
 	public Router getRouter(String url){
+		VersionRouter versionRouter = versionRouter(url);
+		if(versionRouter != null){
+			url = versionRouter.getUrl();
+		}
 		Router temp = map.get(url);
 		if(temp == null){
-			return pathRouter(url);
+			temp = pathRouter(url);
+		}
+		if(temp == null){
+			return null;
+		}
+		if(versionRouter != null){
+			temp.setVersion(versionRouter.getVersion());
+			temp.setReUrl(url);
 		}
 		return temp;
 	}
@@ -268,6 +289,45 @@ public class HapiHttpContextFactory {
 		return temp;
 	}
 	
+	/**
+	 * check version router.
+	 * @return Object Router
+	 */
+	private VersionRouter versionRouter(String url){
+		if((versions == null || versions.isEmpty())){
+			return null;
+		}
+		//normal path must start with '/', value length must greater than or equal to 1. 
+		if(url == null || url.length() < 1){
+			return null;
+		}
+		StringBuilder versionSuffix = new StringBuilder();
+		String versionValue = null;
+		String reUrl = url;
+		for(String version : versions){
+			versionSuffix.append("/").append(version).append("/");
+			String temp = versionSuffix.toString();
+			if(url.length() < temp.length()){
+				//clear
+				versionSuffix.setLength(0);
+				continue;
+			}
+			if(url.startsWith(temp)){
+				versionValue = version;
+				// keep separator
+				reUrl = url.substring(temp.length() - 1, url.length());
+				break;
+			}
+			
+			//clear
+			versionSuffix.setLength(0);
+		}
+		if(versionValue == null){
+			return null;
+		}
+		return new VersionRouter(versionValue, reUrl);
+	}
+	
 	private void scanRoute(Class<?> clazz, String route){
 		AutowiredField[] fields = null;
 		if(autowiredHandler != null){
@@ -319,7 +379,7 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
-	private void addRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private synchronized void addRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			return ;
 		}
@@ -378,7 +438,7 @@ public class HapiHttpContextFactory {
 		map.put(router.getPath(), router);
 	}
 	
-	private void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private synchronized void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
 		if(position == null){
 			position = "";
 		}
@@ -445,5 +505,18 @@ public class HapiHttpContextFactory {
 			throw new RouteException(clazz.getName()+": proxy '"+router.getPath()+"' was registed by other package.");
 		}
 		path.put(router.getPath(), router);
+	}
+	
+	private synchronized void addVersion(String version){
+		if(version == null || version.trim().equals("")){
+			return ;
+		}
+		if(version.startsWith("/")){
+			version = version.substring(1, version.length());
+		}
+		if(version.endsWith("/")){
+			version = version.substring(0, version.length() - 1);
+		}
+		versions.add(version);
 	}
 }

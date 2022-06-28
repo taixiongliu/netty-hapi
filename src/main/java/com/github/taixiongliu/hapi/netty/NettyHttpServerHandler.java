@@ -515,7 +515,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		// TODO Auto-generated method stub
-		cause.printStackTrace();
+		//cause.printStackTrace();
 		ctx.close();
 	}
 

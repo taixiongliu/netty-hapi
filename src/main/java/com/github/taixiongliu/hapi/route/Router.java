@@ -14,6 +14,8 @@ public class Router {
 	private String position;
 	private HapiHttpMethod httpMethod;
 	private HapiRouteType routeType;
+	private String version;
+	private String reUrl;
 	
 	public String getPath() {
 		return path;
@@ -50,5 +52,17 @@ public class Router {
 	}
 	public void setRouteType(HapiRouteType routeType) {
 		this.routeType = routeType;
+	}
+	public String getVersion() {
+		return version;
+	}
+	public void setVersion(String version) {
+		this.version = version;
+	}
+	public String getReUrl() {
+		return reUrl;
+	}
+	public void setReUrl(String reUrl) {
+		this.reUrl = reUrl;
 	}
 }

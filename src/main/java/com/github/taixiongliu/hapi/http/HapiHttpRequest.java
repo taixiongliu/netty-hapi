@@ -13,4 +13,6 @@ public interface HapiHttpRequest {
 	public String getParameter(String paramName);
 	public String uri();
 	public HttpHeaders heads();
+	public String getVersion();
+	public String getReUrl();
 }
