@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 	private HttpResponseStatus status;
 	private String content;
-	private Map<String, String> heads;
+	private Map<String, Object> heads;
 	private HapiRouteType routeType;
 	private FileOutputStream fos;
 	private boolean isStream;
@@ -41,7 +41,7 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 		this.status = status;
 		this.content = content;
 		random = new Random();
-		heads = new ConcurrentHashMap<String, String>();
+		heads = new ConcurrentHashMap<String, Object>();
 		routeType = HapiRouteType.BODY;
 	}
 	
@@ -53,7 +53,7 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 		return content;
 	}
 	
-	public Map<String, String> heads(){
+	public Map<String, Object> heads(){
 		return heads;
 	}
 
@@ -142,7 +142,7 @@ public class DefaultHapiHttpResponseImpl implements HapiHttpResponse{
 		// TODO Auto-generated method stub
 		this.content = content;
 	}
-	public void setHead(String name, String value) {
+	public void setHead(String name, Object value) {
 		// TODO Auto-generated method stub
 		heads.put(name, value);
 	}

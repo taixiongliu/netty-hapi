@@ -2,6 +2,7 @@ package com.github.taixiongliu.hapi;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -19,9 +20,13 @@ import com.github.taixiongliu.hapi.exception.RouteException;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.netty.NettyHttpServer;
 import com.github.taixiongliu.hapi.route.ClassScanner;
+import com.github.taixiongliu.hapi.route.DeleteRequestMapping;
+import com.github.taixiongliu.hapi.route.GetRequestMapping;
 import com.github.taixiongliu.hapi.route.HapiHttpMethod;
 import com.github.taixiongliu.hapi.route.HapiRouteType;
+import com.github.taixiongliu.hapi.route.PostRequestMapping;
 import com.github.taixiongliu.hapi.route.ProxyMapping;
+import com.github.taixiongliu.hapi.route.PutRequestMapping;
 import com.github.taixiongliu.hapi.route.RequestMapping;
 import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
@@ -135,14 +140,14 @@ public class HapiHttpContextFactory {
 		cachePath = map.get("context:cache-path");
 		int maxReceive = default_max_receive;
 		try {
-			maxReceive = new Integer(map.get("context:receive-max-length"));
+			maxReceive = Integer.valueOf(map.get("context:receive-max-length"));
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
 		
 		maxLength = null;		
 		try {
-			maxLength = new Integer(map.get("context:upload-max-length"));
+			maxLength = Integer.valueOf(map.get("context:upload-max-length"));
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
@@ -199,12 +204,12 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
-	public Router getRouter(String url){
+	public Router getRouter(String url, String method){
 		VersionRouter versionRouter = versionRouter(url);
 		if(versionRouter != null){
 			url = versionRouter.getUrl();
 		}
-		Router temp = map.get(url);
+		Router temp = map.get(url+"_"+method);
 		if(temp == null){
 			temp = pathRouter(url);
 		}
@@ -358,8 +363,48 @@ public class HapiHttpContextFactory {
 				if(annotation instanceof RequestMapping){
 					RequestMapping mapping = (RequestMapping) annotation;
 					try {
-						addRouter(clazz, fields, med, route, mapping.value(), mapping.method(),mapping.type());
-					} catch (RouteException e) {
+						addRouter(clazz, fields, med, route, mapping.value(), mapping.method(), mapping.type());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
+				if(annotation instanceof GetRequestMapping){
+					GetRequestMapping mapping = (GetRequestMapping) annotation;
+					try {
+						addRouter(clazz, fields, med, route, mapping.value(), HapiHttpMethod.GET, mapping.type());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
+				if(annotation instanceof PostRequestMapping){
+					PostRequestMapping mapping = (PostRequestMapping) annotation;
+					try {
+						addRouter(clazz, fields, med, route, mapping.value(), HapiHttpMethod.POST, mapping.type());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
+				if(annotation instanceof PutRequestMapping){
+					PutRequestMapping mapping = (PutRequestMapping) annotation;
+					try {
+						addRouter(clazz, fields, med, route, mapping.value(), HapiHttpMethod.PUT, mapping.type());
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				}
+				if(annotation instanceof DeleteRequestMapping){
+					DeleteRequestMapping mapping = (DeleteRequestMapping) annotation;
+					try {
+						addRouter(clazz, fields, med, route, mapping.value(), HapiHttpMethod.DELETE, mapping.type());
+					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -369,7 +414,7 @@ public class HapiHttpContextFactory {
 					ProxyMapping mapping = (ProxyMapping) annotation;
 					try {
 						addPathRouter(clazz, fields, med, route, mapping.value(), mapping.method(), mapping.type());
-					} catch (RouteException e) {
+					} catch (Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
@@ -379,7 +424,7 @@ public class HapiHttpContextFactory {
 		}
 	}
 	
-	private synchronized void addRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private synchronized void addRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws Exception{
 		if(position == null){
 			return ;
 		}
@@ -410,7 +455,9 @@ public class HapiHttpContextFactory {
 		router.setPath(sb.toString());
 		router.setMd(med);
 		try {
-			Object instance = clazz.newInstance();
+			Constructor<?> constructor = clazz.getDeclaredConstructor();
+			Object instance = constructor.newInstance();
+			
 			if(fields != null && fields.length > 0 && autowiredHandler != null){
 				for(AutowiredField autowiredField : fields){
 					Field field = autowiredField.getField();
@@ -432,13 +479,13 @@ public class HapiHttpContextFactory {
 		router.setPosition(position);
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
-		if(map.get(router.getPath()) != null){
+		if(map.get(router.getPath()+"_"+httpMethod.getName()) != null){
 			throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' was registed by other package.");
 		}
-		map.put(router.getPath(), router);
+		map.put(router.getPath()+"_"+httpMethod.getName(), router);
 	}
 	
-	private synchronized void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws RouteException{
+	private synchronized void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws Exception{
 		if(position == null){
 			position = "";
 		}
@@ -472,7 +519,9 @@ public class HapiHttpContextFactory {
 		router.setPath(sb.toString());
 		router.setMd(med);
 		try {
-			Object instance = clazz.newInstance();
+			Constructor<?> constructor = clazz.getDeclaredConstructor();
+			Object instance = constructor.newInstance();
+			//Object instance = clazz.newInstance();
 			if(fields != null && fields.length > 0 && autowiredHandler != null){
 				for(AutowiredField autowiredField : fields){
 					Field field = autowiredField.getField();

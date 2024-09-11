@@ -25,9 +25,9 @@ public class HapiHttpService implements HttpRequestHandler{
 		// TODO Auto-generated constructor stub
 	}
 
-	public void onGet(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
+	public void onRequest(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
 		// TODO Auto-generated method stub
-		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl());
+		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl(), request.getMethod().name());
 		if(router == null){
 			response.setStatus(HttpResponseStatus.NOT_FOUND);
 			response.setContent("404 context not found...");
@@ -36,65 +36,12 @@ public class HapiHttpService implements HttpRequestHandler{
 		BaseHapiHttpRequestImpl brequest = ((BaseHapiHttpRequestImpl)request);
 		brequest.setVersion(router.getVersion());
 		brequest.setReUrl(router.getReUrl());
-		
-		if(router.getHttpMethod().equals(HapiHttpMethod.POST)){
+		if(!router.getHttpMethod().getName().equals(HapiHttpMethod.ALL.getName()) && !router.getHttpMethod().getName().equals(request.getMethod().name())){
 			response.setStatus(HttpResponseStatus.FORBIDDEN);
-			response.setContent("403 context not support post request...");
+			response.setContent("403 context not support '"+request.getMethod().name()+"' method request...");
 			return ;
 		}
 		//set route type.
-		response.setRouteType(router.getRouteType());
-		
-		response.setStatus(HttpResponseStatus.OK);
-		Parameter[] parameters = router.getMd().getParameters();
-		int len = parameters.length;
-		Object[] args = new Object[len];
-		for(int i = 0; i < len; i++){
-			Class<?> clazz = parameters[i].getType();
-			if(clazz.isPrimitive()){
-				args[i] = getPrimitiveParameter(clazz.getName());
-				continue;
-			}
-			if(clazz.isAssignableFrom(HapiHttpRequest.class)) {
-				args[i] = request;
-				continue;
-			}
-			if(clazz.isAssignableFrom(HapiHttpResponse.class)) {
-				args[i] = response;
-				continue;
-			}
-			args[i] = null;
-		}
-		try {
-			router.getMd().invoke(router.getClazz(), args);
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	public void onPost(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
-		// TODO Auto-generated method stub
-		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl());
-		if(router == null){
-			response.setStatus(HttpResponseStatus.NOT_FOUND);
-			response.setContent("404 context not found...");
-			return ;
-		}
-		BaseHapiHttpRequestImpl brequest = ((BaseHapiHttpRequestImpl)request);
-		brequest.setVersion(router.getVersion());
-		brequest.setReUrl(router.getReUrl());
-		if(router.getHttpMethod().equals(HapiHttpMethod.GET)){
-			response.setStatus(HttpResponseStatus.FORBIDDEN);
-			response.setContent("403 context not support get request...");
-			return ;
-		}
 		response.setRouteType(router.getRouteType());
 		
 		response.setStatus(HttpResponseStatus.OK);

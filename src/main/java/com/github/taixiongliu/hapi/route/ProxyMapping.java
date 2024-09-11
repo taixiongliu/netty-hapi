@@ -19,6 +19,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProxyMapping {
 	String value() default "";
-	HapiHttpMethod method() default HapiHttpMethod.BOTH;
+	HapiHttpMethod method() default HapiHttpMethod.ALL;
 	HapiRouteType type() default HapiRouteType.BODY;
 }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 
 /**
@@ -20,6 +21,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	private Map<String, String> parameters;
 	private String version;
 	private String reUrl;
+	private HttpMethod method;
 	
 	public abstract Map<String, String> parseParameter(String content) throws HttpUrlErrorException;
 	
@@ -131,6 +133,12 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	public HttpHeaders heads() {
 		// TODO Auto-generated method stub
 		return request.headers();
+	}
+	public HttpMethod getMethod() {
+		return method;
+	}
+	public void setMethod(HttpMethod method) {
+		this.method = method;
 	}
 
 	public String getVersion() {

@@ -12,7 +12,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 public interface HapiHttpResponse {
 	public void setStatus(HttpResponseStatus status);
 	public void setContent(String content);
-	public void setHead(String name, String value);
+	public void setHead(String name, Object value);
 	public OutputStream getOutputStream();
 	public OutputStream getOutputStream(String contentType);
 }

@@ -69,8 +69,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	public static final int HTTP_CACHE_SECONDS = 60;
 
 	private HttpRequest request;
-	private Boolean isPost = null;
-	private String ip;
+	//private String ip;
 	private String postContent = "";
 	private HttpRequestHandler handler;
 	private SocketChannel channel;
@@ -108,7 +107,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 		response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
 		response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
 
-		Map<String, String> map = nettyResponse.heads();
+		Map<String, Object> map = nettyResponse.heads();
 		if (map != null) {
 			for (String key : map.keySet()) {
 				response.headers().set(key, map.get(key));
@@ -137,7 +136,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 		setContentTypeHeader(response, file.getPath());
 		setDateAndCacheHeaders(response, file);
 
-		Map<String, String> map = nettyResponse.heads();
+		Map<String, Object> map = nettyResponse.heads();
 		if (map != null) {
 			for (String key : map.keySet()) {
 				response.headers().set(key, map.get(key));
@@ -218,7 +217,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 		response.headers().set(HttpHeaderNames.CONTENT_TYPE, nettyResponse.getContentType());
 		setDateAndCacheHeaders(response, file);
 
-		Map<String, String> map = nettyResponse.heads();
+		Map<String, Object> map = nettyResponse.heads();
 		if (map != null) {
 			for (String key : map.keySet()) {
 				response.headers().set(key, map.get(key));
@@ -319,18 +318,14 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 			request = (HttpRequest) msg;
 
 			// get ip if with NGINX proxy
-			ip = request.headers().get("X-Real-IP");
+			String ip = request.headers().get("X-Real-IP");
 			if (ip == null || ip.trim().equals("")) {
 				InetSocketAddress insocket = (InetSocketAddress) ctx.channel().remoteAddress();
 				ip = insocket.getAddress().getHostAddress();
 			}
+			requestImpl.setIpAddress(ip);
+			requestImpl.setMethod(request.method());
 
-			if (request.method().equals(HttpMethod.GET)) {
-				isPost = false;
-			}
-			if (request.method().equals(HttpMethod.POST)) {
-				isPost = true;
-			}
 			String contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE);
 			if (contentType != null && contentType.startsWith("multipart/form-data")) {
 				isMFD = true;
@@ -338,8 +333,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 		}
 		if (msg instanceof HttpContent) {
 			// only post method have request body
-			if (isPost != null && isPost) {
-				
+			if (request.method().equals(HttpMethod.POST)) {
 				if (isMFD) {
 					HttpPostMultipartRequestDecoder decoder = new HttpPostMultipartRequestDecoder(request);
 					while (decoder.hasNext()) {
@@ -432,13 +426,11 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 				return;
 			}
 
-			requestImpl.setIpAddress(ip);
-
 			// get method request
-			if (!isPost) {
+			if (request.method().equals(HttpMethod.GET)) {
 				// initialization response instance
 				DefaultHapiHttpResponseImpl responseImpl = new DefaultHapiHttpResponseImpl();
-				handler.onGet(requestImpl, responseImpl);
+				handler.onRequest(requestImpl, responseImpl);
 				// file route type
 				switch (responseImpl.getRouteType()) {
 					case FILE:
@@ -461,7 +453,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 				}
 				return;
 			}
-			// post method request
+			// other method request
 			Map<String, String> postParameter = null;
 			boolean parse = true;
 			if(!isMFD){
@@ -502,7 +494,7 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 			requestImpl.addParameters(postParameter);
 			// initialization response instance
 			DefaultHapiHttpResponseImpl responseImpl = new DefaultHapiHttpResponseImpl();
-			handler.onPost(requestImpl, responseImpl);
+			handler.onRequest(requestImpl, responseImpl);
 			ctx.write(setResponse(responseImpl));
 			ctx.flush();
 			ctx.close();

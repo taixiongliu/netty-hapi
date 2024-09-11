@@ -11,7 +11,6 @@ import io.netty.handler.codec.http.HttpMethod;
  * 
  */
 public interface HttpRequestHandler {
-	public void onGet(HapiHttpRequest request, DefaultHapiHttpResponseImpl response);
-	public void onPost(HapiHttpRequest request, DefaultHapiHttpResponseImpl response);
+	public void onRequest(HapiHttpRequest request, DefaultHapiHttpResponseImpl response);
 	public void onError(HttpMethod fromMethod, DefaultHapiHttpResponseImpl response, Exception e);
 }

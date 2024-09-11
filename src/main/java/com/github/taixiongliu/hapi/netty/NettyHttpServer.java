@@ -1,4 +1,6 @@
 package com.github.taixiongliu.hapi.netty;
+import java.lang.reflect.Constructor;
+
 import com.github.taixiongliu.hapi.HapiHttpSslContextFactory;
 import com.github.taixiongliu.hapi.http.AutoHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
@@ -111,7 +113,8 @@ public class NettyHttpServer{
                      if(clazz == null){
                     	 base = new AutoHapiHttpRequestImpl();
                      }else{
-                    	 base = clazz.newInstance();
+                    	 Constructor<? extends BaseHapiHttpRequestImpl> constructor = clazz.getDeclaredConstructor();
+                    	 base = constructor.newInstance();
                      }
                      
                      NettyHttpServerHandler hd = new NettyHttpServerHandler(ch, handler, base, uploadPath);

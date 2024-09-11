@@ -10,7 +10,9 @@ import java.lang.annotation.Target;
  * <br><br>
  * value=[route], e.g: http://www.xxx.com/a/b, value=b
  * <br><br>
- * method=[HTTP method], default BOTH that can be request with HTTP method GET and POST
+ * method=[HTTP method], default GET that can be request with HTTP method GET
+ * <br><br>
+ * type=[request type] default BODY that response write in body.
  * @author taixiong.liu
  *
  */
@@ -19,6 +21,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestMapping {
 	String value() default "";
-	HapiHttpMethod method() default HapiHttpMethod.BOTH;
+	HapiHttpMethod method() default HapiHttpMethod.GET;
 	HapiRouteType type() default HapiRouteType.BODY;
 }

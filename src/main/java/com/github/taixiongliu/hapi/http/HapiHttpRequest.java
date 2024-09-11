@@ -1,6 +1,7 @@
 package com.github.taixiongliu.hapi.http;
 
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 
 /**
  * <b>Request context interface</b>
@@ -15,4 +16,5 @@ public interface HapiHttpRequest {
 	public HttpHeaders heads();
 	public String getVersion();
 	public String getReUrl();
+	public HttpMethod getMethod();
 }
