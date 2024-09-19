@@ -332,69 +332,67 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 			}
 		}
 		if (msg instanceof HttpContent) {
-			// only post method have request body
-			if (request.method().equals(HttpMethod.POST)) {
-				if (isMFD) {
-					HttpPostMultipartRequestDecoder decoder = new HttpPostMultipartRequestDecoder(request);
-					while (decoder.hasNext()) {
-						InterfaceHttpData data = decoder.next();
-						if (data != null) {
-							if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-								FileUpload fileUpload = (FileUpload) data;
-								if (fileUpload.isCompleted()) {
-									fileUpload.isInMemory();// tells if the file is in Memory
-									
-									Integer maxLen = HapiHttpContextFactory.getInstance().getMaxLength();
-									//size over max.
-									if(maxLen != null && maxLen.intValue() < fileUpload.length()){
-										mdfError = 2;
+			// check body all request  
+			if (isMFD) {
+				HttpPostMultipartRequestDecoder decoder = new HttpPostMultipartRequestDecoder(request);
+				while (decoder.hasNext()) {
+					InterfaceHttpData data = decoder.next();
+					if (data != null) {
+						if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+							FileUpload fileUpload = (FileUpload) data;
+							if (fileUpload.isCompleted()) {
+								fileUpload.isInMemory();// tells if the file is in Memory
+								
+								Integer maxLen = HapiHttpContextFactory.getInstance().getMaxLength();
+								//size over max.
+								if(maxLen != null && maxLen.intValue() < fileUpload.length()){
+									mdfError = 2;
+									break;
+								}
+								
+								// or on File
+								// enable to move into another
+								String[] fileNameArr = fileUpload.getFilename().split("\\.");
+								String suffix = null;
+								if(fileNameArr.length > 1){
+									suffix = fileNameArr[fileNameArr.length - 1];
+								}
+								
+								String fileName = getFileName(suffix);
+								File temp = new File(uploadPath + fileName);
+								//if exists, try again
+								if(temp.exists()){
+									fileName = getFileName(suffix);
+									temp = new File(uploadPath + fileName);
+									//give up.
+									if(temp.exists()){
+										mdfError = 1;
 										break;
 									}
-									
-									// or on File
-									// enable to move into another
-									String[] fileNameArr = fileUpload.getFilename().split("\\.");
-									String suffix = null;
-									if(fileNameArr.length > 1){
-										suffix = fileNameArr[fileNameArr.length - 1];
-									}
-									
-									String fileName = getFileName(suffix);
-									File temp = new File(uploadPath + fileName);
-									//if exists, try again
-									if(temp.exists()){
-										fileName = getFileName(suffix);
-										temp = new File(uploadPath + fileName);
-										//give up.
-										if(temp.exists()){
-											mdfError = 1;
-											break;
-										}
-									}
-									
-									fileUpload.renameTo(temp);
-									
-									//add parameter
-									mfdParameter.put(fileUpload.getName(), fileName);
-									
-									// File dest
-									decoder.removeHttpDataFromClean(fileUpload); // remove
 								}
-
-							}
-							if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-								Attribute attribute  = (Attribute)data;
+								
+								fileUpload.renameTo(temp);
+								
 								//add parameter
-								mfdParameter.put(attribute.getName(), attribute.getValue());
-								decoder.removeHttpDataFromClean(attribute);
+								mfdParameter.put(fileUpload.getName(), fileName);
+								
+								// File dest
+								decoder.removeHttpDataFromClean(fileUpload); // remove
 							}
+
+						}
+						if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+							Attribute attribute  = (Attribute)data;
+							//add parameter
+							mfdParameter.put(attribute.getName(), attribute.getValue());
+							decoder.removeHttpDataFromClean(attribute);
 						}
 					}
-				} else {
-					HttpContent content = (HttpContent) msg;
-					ByteBuf buf = content.content();
-					postContent += buf.toString(CharsetUtil.UTF_8);
 				}
+			} else {
+				HttpContent content = (HttpContent) msg;
+				ByteBuf buf = content.content();
+				postContent += buf.toString(CharsetUtil.UTF_8);
 			}
 		}
 		// if last request content(maybe content split)
