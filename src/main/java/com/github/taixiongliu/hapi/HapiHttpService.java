@@ -27,22 +27,38 @@ public class HapiHttpService implements HttpRequestHandler{
 
 	public void onRequest(HapiHttpRequest request, DefaultHapiHttpResponseImpl response) {
 		// TODO Auto-generated method stub
-		Router router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl(), request.getMethod().name());
-		if(router == null){
-			response.setStatus(HttpResponseStatus.NOT_FOUND);
-			response.setContent("404 context not found...");
-			return ;
+		Router router = null;
+		try {
+			router = HapiHttpContextFactory.getInstance().getRouter(request.getUrl(), request.getMethod().name());
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
 		}
+		
+		if(router == null){
+			router = HapiHttpContextFactory.getInstance().getProxyRouter(request.getUrl());
+			if(router == null){
+				response.setStatus(HttpResponseStatus.NOT_FOUND);
+				response.setContent("404 context not found...");
+				return ;
+			}
+			if(!router.getHttpMethod().getName().equals(HapiHttpMethod.ALL.getName()) && !router.getHttpMethod().getName().equals(request.getMethod().name())){
+				response.setStatus(HttpResponseStatus.FORBIDDEN);
+				response.setContent("403 context not support '"+request.getMethod().name()+"' method request...");
+				return ;
+			}
+		}
+		
 		BaseHapiHttpRequestImpl brequest = ((BaseHapiHttpRequestImpl)request);
 		brequest.setVersion(router.getVersion());
 		brequest.setReUrl(router.getReUrl());
-		if(!router.getHttpMethod().getName().equals(HapiHttpMethod.ALL.getName()) && !router.getHttpMethod().getName().equals(request.getMethod().name())){
-			response.setStatus(HttpResponseStatus.FORBIDDEN);
-			response.setContent("403 context not support '"+request.getMethod().name()+"' method request...");
-			return ;
-		}
 		//set route type.
 		response.setRouteType(router.getRouteType());
+		//set path parameters.
+		if(router.getPathParameters() > 0) {
+			brequest.setPathParameters(router.getPathParameterNames());
+			brequest.setPathValues(router.getPathParameterValues());
+		}
 		
 		response.setStatus(HttpResponseStatus.OK);
 		Parameter[] parameters = router.getMd().getParameters();

@@ -9,6 +9,9 @@ import java.lang.reflect.Method;
  */
 public class Router {
 	private String path;
+	private int pathParameters;
+	private String[] pathParameterNames;
+	private String[] pathParameterValues;
 	private Object clazz;
 	private Method md;
 	private String position;
@@ -16,6 +19,10 @@ public class Router {
 	private HapiRouteType routeType;
 	private String version;
 	private String reUrl;
+	public Router() {
+		// TODO Auto-generated constructor stub
+		this.pathParameters = 0;
+	}
 	
 	public String getPath() {
 		return path;
@@ -23,6 +30,26 @@ public class Router {
 	public void setPath(String path) {
 		this.path = path;
 	}
+	public int getPathParameters() {
+		return pathParameters;
+	}
+	public void setPathParameters(int pathParameters) {
+		this.pathParameters = pathParameters;
+	}
+	public String[] getPathParameterNames() {
+		return pathParameterNames;
+	}
+	public void setPathParameterNames(String[] pathParameterNames) {
+		this.pathParameterNames = pathParameterNames;
+	}
+	public String[] getPathParameterValues() {
+		return pathParameterValues;
+	}
+
+	public void setPathParameterValues(String[] pathParameterValues) {
+		this.pathParameterValues = pathParameterValues;
+	}
+
 	public Object getClazz() {
 		return clazz;
 	}

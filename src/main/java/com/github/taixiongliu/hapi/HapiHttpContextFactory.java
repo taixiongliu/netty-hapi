@@ -59,9 +59,9 @@ public class HapiHttpContextFactory {
 		return factory;
 	}
 	
-	private Map<String, Router> map;
+	private Map<String, Router> routeMap;
 	private Router root;
-	private Map<String, Router> path;
+	private Map<String, Router> pathRoute;
     private KeystoreEntity entity;
     private AutowiredHandler autowiredHandler;
     private String rootPath;
@@ -72,8 +72,8 @@ public class HapiHttpContextFactory {
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		//取消使用ConcurrentHashMap
-		map = new HashMap<String, Router>();
-		path = new HashMap<String, Router>();
+		routeMap = new HashMap<String, Router>();
+		pathRoute = new HashMap<String, Router>();
 		root = null;
 		entity = null;
 		autowiredHandler = null;
@@ -209,10 +209,31 @@ public class HapiHttpContextFactory {
 		if(versionRouter != null){
 			url = versionRouter.getUrl();
 		}
-		Router temp = map.get(url+"_"+method);
-		if(temp == null){
-			temp = pathRouter(url);
+		Router temp = routeMap.get(url+"_"+method);
+		//method all.
+		if(temp == null) {
+			temp = routeMap.get(url+"_"+HapiHttpMethod.ALL.getName());
 		}
+		//dynamic router.
+		if(temp == null){
+			temp = dynamicRouter(url, method);
+		}
+		if(temp == null){
+			return null;
+		}
+		if(versionRouter != null){
+			temp.setVersion(versionRouter.getVersion());
+			temp.setReUrl(url);
+		}
+		return temp;
+	}
+	
+	public Router getProxyRouter(String url){
+		VersionRouter versionRouter = versionRouter(url);
+		if(versionRouter != null){
+			url = versionRouter.getUrl();
+		}
+		Router temp = pathRouter(url);
 		if(temp == null){
 			return null;
 		}
@@ -258,11 +279,95 @@ public class HapiHttpContextFactory {
 	}
 	
 	/**
+	 * check dynamic router.
+	 * @return Object Router
+	 */
+	private Router dynamicRouter(String url, String method){
+		//normal path must start with '/', value length must greater than or equal to 1. 
+		if(url == null || !url.startsWith("/")){
+			return null;
+		}
+		url = url.substring(1, url.length());
+		// match router.
+		List<Router> temp = new ArrayList<Router>();
+		for(String key : routeMap.keySet()){
+			Router router = routeMap.get(key);
+			//not dynamic route.
+			if(router.getPathParameters() < 1) {
+				continue;
+			}
+			
+			String path = router.getPath().substring(1, router.getPath().length());
+			// only one dynamic parameter.
+			if(!url.contains("/")) {
+				if(path.equals("{*}")) {
+					if(router.getHttpMethod().getName().equals(HapiHttpMethod.ALL.getName()) || router.getHttpMethod().getName().equals(method)) {
+						router.setPathParameterValues(new String[] {url});
+						temp.add(router);
+					}
+				}
+				continue;
+			}
+			//parameter must more than 1.
+			if(!path.contains("/")) {
+				continue;
+			}
+			
+			//split and match every one.
+			String[] pathArr = path.split("/");
+			String[] urlArr = url.split("/");
+			if(pathArr.length != urlArr.length) {
+				continue;
+			}
+			boolean match = true;
+			List<String> values = new ArrayList<String>();
+			for(int i = 0; i < pathArr.length; i ++) {
+				if(pathArr[i].equals("{*}")) {
+					values.add(urlArr[i]);
+					continue;
+				}
+				if(!pathArr[i].equals(urlArr[i])) {
+					match = false;
+					break;
+				}
+			}
+			// match pass.
+			if(match) {
+				if(router.getHttpMethod().getName().equals(HapiHttpMethod.ALL.getName()) || router.getHttpMethod().getName().equals(method)) {
+					String[] varr = new String[values.size()];
+					router.setPathParameterValues(values.toArray(varr));
+					temp.add(router);
+				}
+			}
+		}
+		
+		if(temp.isEmpty()) {
+			return null;
+		}
+		
+		//sort and get length max of prefix.
+		Router finalRouter = temp.get(0);
+		// index start with 1.
+		for(int j = 1; j < temp.size(); j ++) {
+			int index = temp.get(j).getPath().indexOf("{*}");
+			if(index > finalRouter.getPath().indexOf("{*}")) {
+				//reset cache values.
+				finalRouter.setPathParameterValues(null);
+				finalRouter = temp.get(j);
+			}else {
+				//reset cache values.
+				temp.get(j).setPathParameterValues(null);
+			}
+		}
+		return finalRouter;
+	}
+	
+	/**
 	 * check path router.
 	 * @return Object Router
 	 */
 	private Router pathRouter(String url){
-		if((path == null|| path.isEmpty()) && root == null){
+		if((pathRoute == null|| pathRoute.isEmpty()) && root == null){
 			return null;
 		}
 		//normal path must start with '/', value length must greater than or equal to 1. 
@@ -270,8 +375,8 @@ public class HapiHttpContextFactory {
 			return null;
 		}
 		Router temp = null;
-		for(String key : path.keySet()){
-			Router router = path.get(key);
+		for(String key : pathRoute.keySet()){
+			Router router = pathRoute.get(key);
 			String path = router.getPath();
 			int pathLen = path.length();
 			//all path
@@ -453,6 +558,40 @@ public class HapiHttpContextFactory {
 		
 		Router router = new Router();
 		router.setPath(sb.toString());
+		
+		//Dynamic Router.
+		if(router.getPath().contains("{")) {
+			String dynamicPath = router.getPath().substring(1, router.getPath().length());
+			if(dynamicPath.contains("/")) {
+				String[] dynamicArr = dynamicPath.split("/");
+				StringBuilder tempPath = new StringBuilder();
+				List<String> tempParmeterName = new ArrayList<String>();
+				for(String p : dynamicArr) {
+					tempPath.append("/");
+					if(p.contains("{")) {
+						String parmeterName = getDynamicParmeter(p);
+						if(parmeterName == null) {
+							throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' dynamic parmeter error.");
+						}
+						tempParmeterName.add(parmeterName);
+						tempPath.append("{*}");
+					}else {
+						tempPath.append(p);
+					}
+				}
+				router.setPath(tempPath.toString());
+				router.setPathParameters(tempParmeterName.size());
+				String[] arr = new String[tempParmeterName.size()];
+				router.setPathParameterNames(tempParmeterName.toArray(arr));
+			}else {//only one dynamic parameter.
+				router.setPath("/{*}");
+				router.setPathParameters(1);
+				String[] arr = new String[1];
+				arr[0] = getDynamicParmeter(dynamicPath);
+				router.setPathParameterNames(arr);
+			}
+		}
+		
 		router.setMd(med);
 		try {
 			Constructor<?> constructor = clazz.getDeclaredConstructor();
@@ -479,10 +618,20 @@ public class HapiHttpContextFactory {
 		router.setPosition(position);
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
-		if(map.get(router.getPath()+"_"+httpMethod.getName()) != null){
+		if(routeMap.get(router.getPath()+"_"+httpMethod.getName()) != null){
 			throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' was registed by other package.");
 		}
-		map.put(router.getPath()+"_"+httpMethod.getName(), router);
+		routeMap.put(router.getPath()+"_"+httpMethod.getName(), router);
+	}
+	
+	private String getDynamicParmeter(String path) {
+		if(!path.startsWith("{")) {
+			return null;
+		}
+		if(!path.endsWith("}")) {
+			return null;
+		}
+		return path.substring(1, path.length() - 1);
 	}
 	
 	private synchronized void addPathRouter(Class<?> clazz, AutowiredField[] fields, Method med,String route, String position, HapiHttpMethod httpMethod, HapiRouteType routeType) throws Exception{
@@ -550,10 +699,10 @@ public class HapiHttpContextFactory {
 			root = router;
 			return ;
 		}
-		if(path.get(router.getPath()) != null){
+		if(pathRoute.get(router.getPath()) != null){
 			throw new RouteException(clazz.getName()+": proxy '"+router.getPath()+"' was registed by other package.");
 		}
-		path.put(router.getPath(), router);
+		pathRoute.put(router.getPath(), router);
 	}
 	
 	private synchronized void addVersion(String version){

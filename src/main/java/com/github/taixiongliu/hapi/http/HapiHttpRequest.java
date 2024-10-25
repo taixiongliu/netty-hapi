@@ -17,4 +17,5 @@ public interface HapiHttpRequest {
 	public String getVersion();
 	public String getReUrl();
 	public HttpMethod getMethod();
+	public String getPathParameter(String pathParamName);
 }

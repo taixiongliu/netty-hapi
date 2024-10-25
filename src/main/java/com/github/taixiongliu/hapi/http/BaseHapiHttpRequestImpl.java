@@ -22,6 +22,8 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	private String version;
 	private String reUrl;
 	private HttpMethod method;
+	private String[] pathParameters;
+	private String[] pathValues;
 	
 	public abstract Map<String, String> parseParameter(String content) throws HttpUrlErrorException;
 	
@@ -110,6 +112,23 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 		return map;
 	}
 	
+	public String getPathParameter(String pathParamName) {
+		if(pathParameters == null || pathParameters.length < 1) {
+			return null;
+		}
+		int index = -1;
+		for(int i = 0; i < pathParameters.length; i ++) {
+			if(pathParameters[i].equals(pathParamName)) {
+				index = i;
+				break;
+			}
+		}
+		if(index == -1) {
+			return null;
+		}
+		return pathValues[index];
+	}
+	
 	public void setIpAddress(String ip){
 		this.ip = ip;
 	} 
@@ -155,5 +174,13 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 
 	public void setReUrl(String reUrl) {
 		this.reUrl = reUrl;
+	}
+
+	public void setPathParameters(String[] pathParameters) {
+		this.pathParameters = pathParameters;
+	}
+
+	public void setPathValues(String[] pathValues) {
+		this.pathValues = pathValues;
 	}
 }
