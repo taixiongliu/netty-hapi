@@ -60,6 +60,7 @@ public class HapiHttpContextFactory {
 	}
 	
 	private Map<String, Router> routeMap;
+	private Map<String, Router> dynamicRouteMap;
 	private Router root;
 	private Map<String, Router> pathRoute;
     private KeystoreEntity entity;
@@ -73,6 +74,7 @@ public class HapiHttpContextFactory {
 		// TODO Auto-generated constructor stub
 		//取消使用ConcurrentHashMap
 		routeMap = new HashMap<String, Router>();
+		dynamicRouteMap = new HashMap<String, Router>();
 		pathRoute = new HashMap<String, Router>();
 		root = null;
 		entity = null;
@@ -287,11 +289,14 @@ public class HapiHttpContextFactory {
 		if(url == null || !url.startsWith("/")){
 			return null;
 		}
+		if(dynamicRouteMap == null || dynamicRouteMap.isEmpty()) {
+			return null;
+		}
 		url = url.substring(1, url.length());
 		// match router.
 		List<Router> temp = new ArrayList<Router>();
-		for(String key : routeMap.keySet()){
-			Router router = routeMap.get(key);
+		for(String key : dynamicRouteMap.keySet()){
+			Router router = dynamicRouteMap.get(key);
 			//not dynamic route.
 			if(router.getPathParameters() < 1) {
 				continue;
@@ -618,10 +623,18 @@ public class HapiHttpContextFactory {
 		router.setPosition(position);
 		router.setHttpMethod(httpMethod);
 		router.setRouteType(routeType);
-		if(routeMap.get(router.getPath()+"_"+httpMethod.getName()) != null){
-			throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' was registed by other package.");
+		// insert into dynamic map
+		if(router.getPathParameters() > 0) {
+			if(dynamicRouteMap.get(router.getPath()+"_"+httpMethod.getName()) != null){
+				throw new RouteException(clazz.getName()+": dynamic route '"+router.getPath()+"' was registed by other package.");
+			}
+			dynamicRouteMap.put(router.getPath()+"_"+httpMethod.getName(), router);
+		}else {
+			if(routeMap.get(router.getPath()+"_"+httpMethod.getName()) != null){
+				throw new RouteException(clazz.getName()+": route '"+router.getPath()+"' was registed by other package.");
+			}
+			routeMap.put(router.getPath()+"_"+httpMethod.getName(), router);
 		}
-		routeMap.put(router.getPath()+"_"+httpMethod.getName(), router);
 	}
 	
 	private String getDynamicParmeter(String path) {
