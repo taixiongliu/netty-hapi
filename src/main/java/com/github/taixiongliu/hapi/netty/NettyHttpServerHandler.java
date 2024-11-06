@@ -20,10 +20,13 @@ import java.util.TimeZone;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import com.alibaba.fastjson.JSONObject;
 import com.github.taixiongliu.hapi.HapiHttpContextFactory;
 import com.github.taixiongliu.hapi.http.BaseHapiHttpRequestImpl;
 import com.github.taixiongliu.hapi.http.DefaultHapiHttpResponseImpl;
 import com.github.taixiongliu.hapi.http.HttpUrlErrorException;
+import com.github.taixiongliu.hapi.tc.ThreadBusyError;
+import com.github.taixiongliu.hapi.tc.ThreadController;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -314,6 +317,22 @@ public class NettyHttpServerHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		// TODO Auto-generated method stub
+		//add thread pool simulator.
+		if(!HapiHttpContextFactory.getInstance().release()) {
+			ThreadBusyError error = ThreadController.getInstance().getThreadBusyError();
+			JSONObject jo = new JSONObject();
+			jo.put(error.getKeyCode() == null?"code":error.getKeyCode(), error.getCode());
+			jo.put(error.getKeyMessage() == null?"message":error.getKeyMessage(), error.getMessage() == null?"":error.getMessage());
+			ctx.write(setResponse(
+					new DefaultHapiHttpResponseImpl(error.getStatus(), jo.toJSONString())));
+			ctx.flush();
+			ctx.close();
+			// release object
+			ReferenceCountUtil.release(msg);
+			channel.close();
+			return;
+		}
+		
 		if (msg instanceof HttpRequest) {
 			request = (HttpRequest) msg;
 

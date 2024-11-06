@@ -32,6 +32,9 @@ import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
 import com.github.taixiongliu.hapi.route.VersionRouter;
 import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
+import com.github.taixiongliu.hapi.tc.ThreadBusyError;
+import com.github.taixiongliu.hapi.tc.ThreadContainer;
+import com.github.taixiongliu.hapi.tc.ThreadController;
 
 /**
  * <b>Scan annotation create and cache router instance</b>
@@ -70,6 +73,7 @@ public class HapiHttpContextFactory {
     private String cachePath;
     private Integer maxLength;
     private Set<String> versions;
+    private boolean enableThreadController;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		//取消使用ConcurrentHashMap
@@ -80,6 +84,7 @@ public class HapiHttpContextFactory {
 		entity = null;
 		autowiredHandler = null;
 		versions = new HashSet<String>();
+		enableThreadController = false;
 	}
 	
 	public HapiHttpContextFactory buildHttps(KeystoreEntity entity){
@@ -96,6 +101,24 @@ public class HapiHttpContextFactory {
 		addVersion(version);
 
     	return this;
+	}
+	public HapiHttpContextFactory buildThreadController(ThreadContainer container) {
+		return buildThreadController(container, null);
+	}
+	public HapiHttpContextFactory buildThreadController(ThreadContainer container, ThreadBusyError busyError) {
+		boolean res = ThreadController.getInstance().initController(container, busyError);
+		if(!res) {
+			System.out.println("Build Thread Controller error.");
+			return this;
+		}
+		enableThreadController = true;
+		return this;
+	}
+	public boolean release() {
+		if(!enableThreadController) {
+			return true;
+		}
+		return ThreadController.getInstance().getPointer();
 	}
 	
 	/**
