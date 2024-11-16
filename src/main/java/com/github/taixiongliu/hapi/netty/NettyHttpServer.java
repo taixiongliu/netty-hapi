@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.ssl.OptionalSslHandler;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
@@ -32,6 +33,7 @@ public class NettyHttpServer{
     private HttpRequestHandler handler;
     private Class<? extends BaseHapiHttpRequestImpl> clazz;
     private boolean isSSL;
+    private boolean onlyHttps;
     private KeystoreEntity entity;
     private String uploadPath;
     //default max receive data one time. 
@@ -45,6 +47,7 @@ public class NettyHttpServer{
         this.handler = handler;
         this.clazz = clazz;
         this.isSSL = false;
+        this.onlyHttps = false;
         this.entity = null;
         this.uploadPath = uploadPath;
     }
@@ -55,10 +58,14 @@ public class NettyHttpServer{
      * @return self
      */
     public NettyHttpServer buildHttps(KeystoreEntity entity){
+    	return buildHttps(entity, false);
+    }
+    public NettyHttpServer buildHttps(KeystoreEntity entity, boolean onlyHttps){
     	if(entity == null){
     		return this;
     	}
     	this.isSSL = true;
+    	this.onlyHttps = onlyHttps;
     	this.entity = entity;
     	
     	return this;
@@ -91,12 +98,14 @@ public class NettyHttpServer{
                  public void initChannel(SocketChannel ch) throws Exception {
                 	 if(isSSL && entity != null){
                 		 //--only protocol https can be support.
-                		 //ch.pipeline().addLast("sslHandler", new SslHandler(HapiHttpSslContextFactory.getInstance().createSSLEngine()));
-                		 
-                		 //supprot protocol https and http.
-                		 SslContext sslContext = HapiHttpSslContextFactory.getInstance().createSslContext();
-                		 if(sslContext != null){
-                			 ch.pipeline().addLast("sslHandler", new OptionalSslHandler(sslContext));
+                		 if(onlyHttps) {
+                			 ch.pipeline().addLast("sslHandler", new SslHandler(HapiHttpSslContextFactory.getInstance().createSSLEngine()));
+                		 }else {
+                			//supprot protocol https and http.
+                    		 SslContext sslContext = HapiHttpSslContextFactory.getInstance().createSslContext();
+                    		 if(sslContext != null){
+                    			 ch.pipeline().addLast("sslHandler", new OptionalSslHandler(sslContext));
+                    		 }
                 		 }
                 	 }
                 	 
