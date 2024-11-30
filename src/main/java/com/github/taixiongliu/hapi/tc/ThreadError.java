@@ -2,16 +2,16 @@ package com.github.taixiongliu.hapi.tc;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-public class ThreadBusyError {
+public class ThreadError {
 	private HttpResponseStatus status;
 	private String keyCode;
 	private int code;
 	private String keyMessage;
 	private String message;
-	public ThreadBusyError() {
+	public ThreadError() {
 		// TODO Auto-generated constructor stub
 	}
-	public ThreadBusyError(HttpResponseStatus status,String keyCode, int code, String keyMessage, String message) {
+	public ThreadError(HttpResponseStatus status, String keyCode, int code, String keyMessage, String message) {
 		// TODO Auto-generated constructor stub
 		this.status = status;
 		this.keyCode = keyCode;

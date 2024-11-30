@@ -32,7 +32,10 @@ import com.github.taixiongliu.hapi.route.Route;
 import com.github.taixiongliu.hapi.route.Router;
 import com.github.taixiongliu.hapi.route.VersionRouter;
 import com.github.taixiongliu.hapi.ssl.KeystoreEntity;
-import com.github.taixiongliu.hapi.tc.ThreadBusyError;
+import com.github.taixiongliu.hapi.tc.ThreadError;
+
+import io.netty.handler.codec.http.HttpResponseStatus;
+
 import com.github.taixiongliu.hapi.tc.ThreadContainer;
 import com.github.taixiongliu.hapi.tc.ThreadController;
 
@@ -74,6 +77,8 @@ public class HapiHttpContextFactory {
     private Integer maxLength;
     private Set<String> versions;
     private boolean enableThreadController;
+    private boolean pause;
+    private ThreadError pauseError;
 	private HapiHttpContextFactory() {
 		// TODO Auto-generated constructor stub
 		//取消使用ConcurrentHashMap
@@ -85,6 +90,8 @@ public class HapiHttpContextFactory {
 		autowiredHandler = null;
 		versions = new HashSet<String>();
 		enableThreadController = false;
+		pause = false;
+		pauseError = new ThreadError(HttpResponseStatus.BAD_GATEWAY, null, 556, null, "server pause now");
 	}
 	
 	public HapiHttpContextFactory buildHttps(KeystoreEntity entity){
@@ -105,7 +112,7 @@ public class HapiHttpContextFactory {
 	public HapiHttpContextFactory buildThreadController(ThreadContainer container) {
 		return buildThreadController(container, null);
 	}
-	public HapiHttpContextFactory buildThreadController(ThreadContainer container, ThreadBusyError busyError) {
+	public HapiHttpContextFactory buildThreadController(ThreadContainer container, ThreadError busyError) {
 		boolean res = ThreadController.getInstance().initController(container, busyError);
 		if(!res) {
 			System.out.println("Build Thread Controller error.");
@@ -114,11 +121,27 @@ public class HapiHttpContextFactory {
 		enableThreadController = true;
 		return this;
 	}
+	public HapiHttpContextFactory buildPauseError(ThreadError pauseError) {
+		if(pauseError == null) {
+			return this;
+		}
+		this.pauseError = pauseError;
+		return this;
+	}
 	public boolean release() {
 		if(!enableThreadController) {
 			return true;
 		}
 		return ThreadController.getInstance().getPointer();
+	}
+	public boolean pause() {
+		return pause;
+	}
+	public void setPause(boolean pause) {
+		this.pause = pause;
+	}
+	public ThreadError getPauseError() {
+		return pauseError;
 	}
 	
 	/**

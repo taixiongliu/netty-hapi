@@ -18,7 +18,7 @@ public class ThreadController implements Runnable{
 	}
 	
 	private ThreadContainer container;
-	private ThreadBusyError busyError;
+	private ThreadError busyError;
 	
 	private int poolCount;
 	
@@ -29,7 +29,7 @@ public class ThreadController implements Runnable{
 	public boolean initController(ThreadContainer container) {
 		return this.initController(container, null);
 	}
-	public boolean initController(ThreadContainer container, ThreadBusyError busyError) {
+	public boolean initController(ThreadContainer container, ThreadError busyError) {
 		if(container == null || this.container != null) {
 			return false;
 		}
@@ -44,7 +44,7 @@ public class ThreadController implements Runnable{
 		}
 		this.container = container;
 		if(busyError == null) {
-			busyError = new ThreadBusyError(HttpResponseStatus.BAD_GATEWAY, null, 555, null, "server busy now");
+			busyError = new ThreadError(HttpResponseStatus.BAD_GATEWAY, null, 555, null, "server busy now");
 		}
 		this.busyError = busyError;
 		this.poolCount = container.getInitCount();
@@ -59,7 +59,7 @@ public class ThreadController implements Runnable{
 		poolCount --;
 		return true;
 	}
-	public ThreadBusyError getThreadBusyError() {
+	public ThreadError getThreadBusyError() {
 		return busyError;
 	}
 	private synchronized void inject() {
