@@ -90,6 +90,15 @@ public class NettyHttpServer{
         EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
+        	/**
+             * ShutdownHook Listener
+             */
+            Runtime.getRuntime().addShutdownHook(new Thread((()->{
+            	System.out.println("netty http server shutdown by external command.");
+            	workerGroup.shutdownGracefully();
+                bossGroup.shutdownGracefully();   
+            })));
+            
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) // (3)
@@ -146,14 +155,5 @@ public class NettyHttpServer{
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
-        
-        /**
-         * ShutdownHook Listener
-         */
-        Runtime.getRuntime().addShutdownHook(new Thread((()->{
-        	System.out.println("netty http server shutdown by external command.");
-        	workerGroup.shutdownGracefully();
-            bossGroup.shutdownGracefully();   
-        })));
     }
 }
