@@ -142,8 +142,18 @@ public class NettyHttpServer{
             // shut down your server.
             f.channel().closeFuture().sync();
         } finally {
+        	System.out.println("netty http server shutdown by self.");
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+        
+        /**
+         * ShutdownHook Listener
+         */
+        Runtime.getRuntime().addShutdownHook(new Thread((()->{
+        	System.out.println("netty http server shutdown by external command.");
+        	workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();   
+        })));
     }
 }
