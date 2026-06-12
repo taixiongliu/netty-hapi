@@ -18,7 +18,8 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	private String url;
 	private HttpRequest request;
 	private String ip;
-	private Map<String, String> parameters;
+	private Map<String, String> urlParameters;
+	private Map<String, String> bodyParameters;
 	private String version;
 	private String reUrl;
 	private HttpMethod method;
@@ -29,7 +30,8 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	
 	public BaseHapiHttpRequestImpl() {
 		// TODO Auto-generated constructor stub
-		parameters = new HashMap<String, String>();
+		urlParameters = new HashMap<String, String>();
+		bodyParameters = new HashMap<String, String>();
 		
 	}
 	public void initUrl(HttpRequest request) throws HttpUrlErrorException{
@@ -48,7 +50,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 			}
 			url = strs[0];
 			if(strs.length == 2){
-				parameters = getParameterMapByUrlParameter(strs[1]);
+				urlParameters = getParameterMapByUrlParameter(strs[1]);
 			}
 			return ;
 		}
@@ -56,7 +58,7 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	}
 	
 	public void addParameters(Map<String, String> map){
-		parameters.putAll(map);
+		bodyParameters.putAll(map);
 	}
 	
 	/**
@@ -143,7 +145,27 @@ public abstract class BaseHapiHttpRequestImpl implements HapiHttpRequest{
 	}
 	public String getParameter(String paramName) {
 		// TODO Auto-generated method stub
-		return parameters.get(paramName);
+		String value = urlParameters.get(paramName);
+		//get from urlParameters
+		if(value!= null) {
+			return value;
+		}
+		//get from bodyParameters
+		return bodyParameters.get(paramName);
+	}
+	public String getUrlParameter(String paramName) {
+		// TODO Auto-generated method stub
+		return urlParameters.get(paramName);
+	}
+	public String getBodyParameter(String paramName) {
+		// TODO Auto-generated method stub
+		return bodyParameters.get(paramName);
+	}
+	public Map<String, String> mapUrlParameter(){
+		return urlParameters;
+	}
+	public Map<String, String> mapBodyParameter(){
+		return bodyParameters;
 	}
 	public String uri() {
 		// TODO Auto-generated method stub
